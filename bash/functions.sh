@@ -1,5 +1,5 @@
 # Open a project in my own GitHub
-function gopen() {
+function ghopen() {
   open "https://github.com/andrielfn/${1}";
 }
 
@@ -16,11 +16,21 @@ function server() {
 
 # Build a Go project and then run it
 function gox {
-  if [ ! -d "bin" ]; then
-    mkdir "bin"
-  fi
+  go install && ${PWD##*/}
+}
 
-  go build -o "bin/${PWD##*/}" && bin/${PWD##*/}
+# Determine size of a file or total size of a directory
+function fs() {
+  if du -b /dev/null > /dev/null 2>&1; then
+    local arg=-sbh;
+  else
+    local arg=-sh;
+  fi
+  if [[ -n "$@" ]]; then
+    du $arg -- "$@";
+  else
+    du $arg .[^.]* *;
+  fi;
 }
 
 # Create a directory and cd to it

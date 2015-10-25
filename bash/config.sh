@@ -14,7 +14,8 @@ shopt -s histappend # Append to the history file when exiting instead of overwri
 
 # Customize the terminal input line
 prompt() {
-  PS1="${CYAN}\w ${MAGENTA}(\$(rb-version))${GREEN}\$(__git_ps1)\n${RED}$ ${NORMAL}"
+  # PS1="${CYAN}\w ${MAGENTA}(\$(rb-version))${GREEN}\$(__git_ps1)\n${RED}$ ${NORMAL}"
+  PS1="${CYAN}\w${GREEN}\$(__git_ps1) ${RED}$ ${NORMAL}"
 }
 
 PROMPT_COMMAND=prompt
@@ -24,7 +25,8 @@ if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # PATH
 export GOPATH="$HOME/code/go"
-export PATH="$HOME/.bin:$PATH:$GOPATH/bin"
+export PATH="$HOME/.bin:$PATH"
+export PATH="$GOPATH/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
 
 # Autojump

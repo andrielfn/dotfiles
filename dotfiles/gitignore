@@ -1,6 +1,5 @@
 # Compiled source #
 ###################
-*.com
 *.class
 *.dll
 *.exe
@@ -37,9 +36,6 @@
 ehthumbs.db
 Thumbs.db
 
-# Gem inicialization
-init
-
 # Rails
 b/
 tmp/
@@ -48,3 +44,6 @@ vendor/ruby
 # Go
 gin-bin
 
+TODO.todo
+INFOS
+db/seeds.rb.example

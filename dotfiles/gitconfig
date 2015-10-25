@@ -9,29 +9,43 @@
 
 [alias]
   st = status
+  s = status -sb
   ci = commit
   cm = commit -m
   b = branch
+  bb = for-each-ref --sort='-authordate:iso8601' --format='%(color:yellow)%(authordate:relative)%09%09%(color:green)%(refname:short)' refs/heads
   d = diff
+  ap = add --patch
   ds = diff --staged
+  tags = tag -l
+  branches = branch -a
+  remotes = remote -v
+  sp = stash pop
+  rc = rebase --continue
+  rim = rebase -i master
+  r = reset
+  r1 = reset HEAD^
+  r2 = reset HEAD^^
+  rh = reset --hard
+  rh1 = reset HEAD^ --hard
+  rh2 = reset HEAD^^ --hard
+  fup = log --since '1 day ago' --oneline --author andriel.nuernberg@plataformatec.com.br
   rank = shortlog -sn --no-merges
+  cl = "!git log $1..${2:-master} --oneline --no-merges --pretty=format:'- %s (%h)'"
   l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-  ls = log --pretty=format:"%C(green)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
-  ll = log --pretty=format:"%C(green)%h%Cred%d\\ %Cred%s%Cblue\\ [%cn]" --decorate --numstat
+  ls = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short
+  lsv = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short --numstat
   co = checkout
   fix = commit --amend
   pom = push origin master
 	latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
 
 [core]
-  editor = subl -w
+  editor = subl -w -n
   excludesfile = ~/.gitignore
 
 [push]
   default = current
-
-[credential]
-  helper = /opt/boxen/bin/boxen-git-credential
 
 [user]
   email = andrielfn@gmail.com
