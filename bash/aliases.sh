@@ -56,6 +56,7 @@ alias t="ruby -I'lib:test'"
 
 # Docker
 # ======
+alias ds="/Applications/Docker/Docker\ Quickstart\ Terminal.app/Contents/Resources/Scripts/start.sh"
 alias dc="docker-compose"
 
 # Deamons
