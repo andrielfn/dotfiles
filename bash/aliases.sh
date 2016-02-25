@@ -37,7 +37,8 @@ alias bo="b open"
 # =====
 alias rc="bin/rails c"
 alias rs="bin/rails s"
-alias s="spring"
+alias s="bin/spring"
+alias sr="bin/rspec"
 alias rdm="bin/rake db:migrate"
 alias rdr="bin/rake db:rollback"
 alias rof="bin/rspec --only-failures"
@@ -47,6 +48,7 @@ alias rof="bin/rspec --only-failures"
 alias marked="open -a Marked"
 alias dotfiles="subl ~/.dotfiles"
 alias t="ruby -I'lib:test'"
+alias g="git"
 
 # Go
 # alias gb="go build"

@@ -31,3 +31,8 @@ export PATH="$HOME/.rbenv/bin:$PATH"
 
 # Autojump
 [[ -s `brew --prefix`/etc/autojump.sh ]] && . `brew --prefix`/etc/autojump.sh
+
+# Enable tab completion for `g` by marking it as an alias for `git`
+if type _git &> /dev/null && [ -f ~/.dotfiles/bash/git-completion.sh ]; then
+  complete -o default -o nospace -F _git g;
+fi;

@@ -47,3 +47,5 @@ gin-bin
 TODO.todo
 INFOS
 db/seeds.rb.example
+*.sublime-*
+vendor/bundle

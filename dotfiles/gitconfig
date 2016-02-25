@@ -11,6 +11,7 @@
   st = status
   s = status -sb
   ci = commit
+  cia = commit -a
   cm = commit -m
   b = branch
   bb = for-each-ref --sort='-authordate:iso8601' --format='%(color:yellow)%(authordate:relative)%09%09%(color:green)%(refname:short)' refs/heads
@@ -44,6 +45,8 @@
 [core]
   editor = subl -w -n
   excludesfile = ~/.gitignore
+	pager = diff-so-fancy | less --tabs=1,5 -R
+  whitespace = warn
 
 [push]
   default = current
