@@ -1,3 +1,8 @@
+# # OS X trash (`brew install trash`) util.
+# function rm() {
+#   trash $1
+# }
+
 # Open a project in my own GitHub
 function ghopen() {
   open "https://github.com/andrielfn/${1}";
