@@ -1,5 +1,5 @@
 # Editor
-export EDITOR="subl -w"
+export EDITOR="subl"
 
 # Git
 export GIT_PS1_SHOWDIRTYSTATE=1

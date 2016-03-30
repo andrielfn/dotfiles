@@ -39,6 +39,7 @@ alias rc="bin/rails c"
 alias rs="bin/rails s"
 alias s="bin/spring"
 alias sr="bin/rspec"
+alias st="bin/teaspoon"
 alias rdm="bin/rake db:migrate"
 alias rdr="bin/rake db:rollback"
 alias rof="bin/rspec --only-failures"
@@ -58,7 +59,7 @@ alias g="git"
 
 # Docker
 # ======
-alias ds="/Applications/Docker/Docker\ Quickstart\ Terminal.app/Contents/Resources/Scripts/start.sh"
+alias dstart="/Applications/Docker/Docker\ Quickstart\ Terminal.app/Contents/Resources/Scripts/start.sh"
 alias dc="docker-compose"
 
 # Deamons
