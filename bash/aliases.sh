@@ -46,9 +46,10 @@ alias rof="bin/rspec --only-failures"
 
 # Others
 # ======
+alias t="tree -I '.git|node_modules|bower_components|.DS_Store' --dirsfirst --filelimit 15 -L ${1:-3} -aC $2"
 alias marked="open -a Marked"
 alias dotfiles="subl ~/.dotfiles"
-alias t="ruby -I'lib:test'"
+# alias t="ruby -I'lib:test'"
 alias g="git"
 
 # Go

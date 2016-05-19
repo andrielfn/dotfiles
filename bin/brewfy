@@ -27,6 +27,7 @@ brew install go
 brew install heroku-toolbelt
 brew install highlight
 brew install httpie
+brew install tree
 brew install node
 brew install openssl
 brew install pcre
