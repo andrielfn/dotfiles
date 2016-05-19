@@ -16,7 +16,7 @@
   b = branch
   bb = for-each-ref --sort='-authordate:iso8601' --format='%(color:yellow)%(authordate:relative)%09%09%(color:green)%(refname:short)' refs/heads
   d = diff
-  pf = push -f
+  pf = push --force-with-lease
   ap = add --patch
   ds = diff --staged
   tags = tag -l
