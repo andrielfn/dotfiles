@@ -1,39 +1,26 @@
 function rmb () {
-  current_branch=$(git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+  #!/bin/bash
 
-  if [ "$current_branch" != "master" ]; then
-    echo "WARNING: You are on branch $current_branch, NOT master."
-  fi
+  # This has to be run from master
+  git checkout master
 
-  echo "Fetching merged branches..."
-
+  # Update our list of remotes
+  git fetch
   git remote prune origin
 
-  remote_branches=$(git branch -r --merged | grep -v '/master$' | grep -v "/$current_branch$")
-  local_branches=$(git branch --merged | grep -v 'master$' | grep -v "$current_branch$")
+  # Remove local fully merged branches
+  git branch --merged master | grep -v 'master$' | xargs git branch -d
 
-  if [ -z "$remote_branches" ] && [ -z "$local_branches" ]; then
-    echo "No existing branches have been merged into $current_branch."
-  else
-    echo "This will remove the following branches:"
+  # Show remote fully merged branches
+  echo "The following remote branches are fully merged and will be removed:"
+  git branch -r --merged master | sed 's/ *origin\///' | grep -v 'master$'
 
-    if [ -n "$remote_branches" ]; then
-      echo "$remote_branches"
-    fi
-
-    if [ -n "$local_branches" ]; then
-      echo "$local_branches"
-    fi
-
-    read -p "Continue? (y/n): " -n 1 choice
-    echo
-    if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
-      # Remove remote branches
-      git push origin `git branch -r --merged | grep -v '/master$' | grep -v "/$current_branch$" | sed 's/origin\//:/g' | tr -d '\n'`
-      # Remove local branches
-      git branch -d `git branch --merged | grep -v 'master$' | grep -v "$current_branch$" | sed 's/origin\///g' | tr -d '\n'`
-    else
-      echo "No branches removed."
-    fi
+  # read -p "Continue (y/n)? " <-- for bash
+  read "reply?Continue (y/n)?"
+  if [[ "$reply" =~ ^[Yy]$ ]]
+  then
+     # Remove remote fully merged branches
+     git branch -r --merged master | sed 's/ *origin\///' | grep -v 'master$' | xargs -I% git push origin :%
+     echo "Done!"
   fi
 }
