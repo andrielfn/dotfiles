@@ -8,10 +8,10 @@
   ui = auto
 
 [alias]
-  st = status
+  st = status -sb
   s = status -sb
   ci = commit
-  cia = commit -a
+  ac = commit -a
   cm = commit -m
   b = branch
   bb = for-each-ref --sort='-authordate:iso8601' --format='%(color:yellow)%(authordate:relative)%09%09%(color:green)%(refname:short)' refs/heads
@@ -36,7 +36,7 @@
   cl = "!git log $1..${2:-master} --oneline --no-merges --pretty=format:'- %s (%h)'"
   l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   ls = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short
-  lsv = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short --numstat
+  lf = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short --numstat
   co = checkout
   fix = commit --amend
   pom = push origin master
