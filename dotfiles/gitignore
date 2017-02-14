@@ -49,3 +49,4 @@ INFOS
 db/seeds.rb.example
 *.sublime-*
 vendor/bundle
+node_modules
