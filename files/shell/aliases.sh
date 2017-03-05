@@ -6,7 +6,7 @@ alias ptec="cd ~/ptec"
 
 # Config
 # ======
-alias reload="source ~/.bash_profile && echo 'Bash reloaded! :D'"
+alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
 
 # Shell
 # =====
@@ -19,6 +19,9 @@ alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias lip="ipconfig getifaddr en0"
 alias key="cat ~/.ssh/id_rsa.pub | pbcopy; echo 'SSH key copied to clipboard!'"
 alias chunk="curl -s -T - chunk.io | pbcopy; echo 'URL copied to clipboard!'"
+alias hex="openssl rand -hex"
+alias fd='find . -type d -name'
+alias ff='find . -type f -name'
 
 # Show/hide hidden files in Finder
 # ================================
@@ -57,19 +60,3 @@ alias g="git"
 # alias gg="go get"
 # alias gr="go run"
 # alias goc="cd $GOPATH/src/github.com/andrielfn"
-
-# Docker
-# ======
-alias dstart="/Applications/Docker/Docker\ Quickstart\ Terminal.app/Contents/Resources/Scripts/start.sh"
-alias dc="docker-compose"
-
-# Deamons
-# =======
-alias rethinkdb.start='launchctl load ~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist'
-alias rethinkdb.stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist'
-
-alias mongodb.start='launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist'
-alias mongodb.stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist'
-
-alias redis.start='launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist'
-alias redis.stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.redis.plist'
