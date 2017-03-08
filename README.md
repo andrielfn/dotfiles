@@ -11,4 +11,4 @@ git clone https://github.com/andrielfn/dotfiles.git .dotfiles
 cd .dotfiles && ./install.sh
 ```
 
-![](http://files.andrielfn.com/O5CCYI4tad.png)
+![](http://files.andrielfn.com/Me9U0bmGMv.png)
