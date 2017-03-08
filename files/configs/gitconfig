@@ -11,7 +11,7 @@
   st = status -sb
   s = status -sb
   ci = commit
-  wip = !git add . && git commit -am 'WIP'
+  wip = !git add . && git commit -am 'WIP :construction:'
   b = branch
   d = diff
   pf = push --force-with-lease
