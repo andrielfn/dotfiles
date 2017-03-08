@@ -11,10 +11,8 @@
   st = status -sb
   s = status -sb
   ci = commit
-  ac = commit -a
-  cm = commit -m
+  wip = !git add . && git commit -am 'WIP'
   b = branch
-  bb = for-each-ref --sort='-authordate:iso8601' --format='%(color:yellow)%(authordate:relative)%09%09%(color:green)%(refname:short)' refs/heads
   d = diff
   pf = push --force-with-lease
   ap = add --patch
@@ -39,6 +37,7 @@
   lf = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short --numstat
   co = checkout
   fix = commit --amend
+  fixx = !git add . && git commit --amend --no-edit
   pom = push origin master
 	latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
 
