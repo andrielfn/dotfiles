@@ -59,3 +59,6 @@
 
 [pull]
   rebase = true
+
+[commit]
+  template = ~/.gitmessage
