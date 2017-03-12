@@ -196,6 +196,8 @@ a {
       <dict>
         <key>foreground</key>
         <string>#5CCFE6</string>
+        <key>fontStyle</key>
+        <string>underlined</string>
       </dict>
     </dict>
     <dict>
@@ -837,7 +839,6 @@ a {
         , entity.other.attribute-name.style.html,
         , entity.other.attribute-name.id.html,
         , entity.other.attribute-name.tag.jade,
-        , constant.other.symbol.ruby,
         , entity.other.attribute-name.jsx,
       </string>
       <key>settings</key>
