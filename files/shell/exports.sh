@@ -16,7 +16,7 @@ export PATH="$HOME/.rbenv/bin:$PATH"
 export PATH="/usr/local/sbin:$PATH"
 export PATH="$PATH:`yarn global bin`"
 export PATH="$PATH:$HOME/.config/yarn/global/node_modules/.bin"
-export PATH="$(pwd)/bin:$PATH"
+export PATH="./bin:$PATH"
 export PATH="$PATH:/usr/local/opt/mysql@5.5/bin"
 
 if [ $ITERM_SESSION_ID ]; then
