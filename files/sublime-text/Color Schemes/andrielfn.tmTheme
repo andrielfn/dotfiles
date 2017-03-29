@@ -134,7 +134,7 @@ a {
       <key>name</key>
       <string>Tag</string>
       <key>scope</key>
-      <string>entity.name.tag, meta.tag.sgml, markup.deleted.git_gutter</string>
+      <string>entity.name.tag, meta.tag.sgml</string>
       <key>settings</key>
       <dict>
         <key>foreground</key>
@@ -769,7 +769,7 @@ a {
       <key>settings</key>
       <dict>
         <key>foreground</key>
-        <string>#5CCFE6</string>
+        <string>#FFC44C</string>
       </dict>
     </dict>
     <dict>
@@ -787,7 +787,7 @@ a {
       <key>name</key>
       <string>SublimeLinter Error</string>
       <key>scope</key>
-      <string>sublimelinter.mark.error</string>
+      <string>sublimelinter.mark.error, markup.deleted.git_gutter</string>
       <key>settings</key>
       <dict>
         <key>foreground</key>
