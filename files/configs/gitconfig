@@ -18,6 +18,7 @@
   ap = add --patch
   ds = diff --staged
   tags = tag -l
+  com = checkout master
   branches = branch -a
   remotes = remote -v
   sp = stash pop
@@ -53,6 +54,7 @@
 [user]
   email = andrielfn@gmail.com
   name = Andriel Nuernberg
+  signingkey = 3AA5C34371567BD2
 
 [merge]
   ff = false

@@ -40,6 +40,7 @@ Thumbs.db
 b/
 tmp/
 vendor/ruby
+.bundle
 
 # Go
 gin-bin
