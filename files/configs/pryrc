@@ -1,3 +1,7 @@
+require 'awesome_print'
+
+AwesomePrint.pry!
+
 Pry.config.editor = 'subl -n -w'
 
 if defined?(PryByebug) || defined?(PryDebugger)

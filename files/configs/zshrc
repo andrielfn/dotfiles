@@ -10,7 +10,7 @@ ZSH_THEME='andrielfn'
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git autojump brew gitfast docker)
+plugins=(git autojump gitfast docker)
 
 # Uncomment the following line if you want to change the command execution time
 # stamp shown in the history command output.
@@ -18,7 +18,7 @@ plugins=(git autojump brew gitfast docker)
 HIST_STAMPS='dd.mm.yyyy'
 
 # Iterm2 integration
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+# test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
 # User configuration
 source $ZSH/oh-my-zsh.sh

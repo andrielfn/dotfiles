@@ -12,6 +12,7 @@
   s = status -sb
   ci = commit
   wip = !git add . && git commit -am 'WIP :construction:'
+  stash-all = stash save --include-untracked
   b = branch
   d = diff
   pf = push --force-with-lease
@@ -24,12 +25,9 @@
   sp = stash pop
   rc = rebase --continue
   rim = rebase -i master
+  prune = fetch --prune
   r = reset
-  r1 = reset HEAD^
-  r2 = reset HEAD^^
-  rh = reset --hard
-  rh1 = reset HEAD^ --hard
-  rh2 = reset HEAD^^ --hard
+  undo = reset --soft HEAD^
   fup = log --since '1 day ago' --oneline --author andriel.nuernberg@plataformatec.com.br
   rank = shortlog -sn --no-merges
   cl = "!git log $1..${2:-master} --oneline --no-merges --pretty=format:'- %s (%h)'"
@@ -50,17 +48,28 @@
 
 [push]
   default = current
+  followTags = true
 
 [user]
   email = andrielfn@gmail.com
   name = Andriel Nuernberg
-  signingkey = 3AA5C34371567BD2
 
 [merge]
   ff = false
+  conflictstyle = diff3
 
 [pull]
   rebase = true
 
 [commit]
   template = ~/.gitmessage
+
+[status]
+  showUntrackedFiles = all
+
+[diff]
+  tool = icdiff
+[difftool]
+  prompt = false
+[difftool "icdiff"]
+  cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE
