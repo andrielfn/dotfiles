@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# Find the Holy Shit number (Holy Shumber) for a Rails project.
+
+ack 'setTimeout|class_eval|Thread.new|connection.execute|find_by_sql' -hc app lib config
