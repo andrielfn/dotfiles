@@ -50,9 +50,10 @@
   default = current
   followTags = true
 
-[user]
-  email = andrielfn@gmail.com
-  name = Andriel Nuernberg
+[includeIf "gitdir:~/"]
+  path = .gitconfig-personal
+[includeIf "gitdir:~/ptec/"]
+  path = .gitconfig-work
 
 [merge]
   ff = false
