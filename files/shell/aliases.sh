@@ -54,6 +54,7 @@ alias marked="open -a Marked"
 alias dotfiles="subl ~/.dotfiles"
 # alias t="ruby -I'lib:test'"
 alias g="git"
+alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers' | awk '{print $1}' | xargs kill -9 && echo 🔪"
 
 # Go
 # alias gb="go build"

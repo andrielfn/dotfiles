@@ -15,6 +15,7 @@
   stash-all = stash save --include-untracked
   b = branch
   d = diff
+  wd = diff --color-words
   pf = push --force-with-lease
   ap = add --patch
   ds = diff --staged
@@ -39,6 +40,7 @@
   fixx = !git add . && git commit --amend --no-edit
   pom = push origin master
 	latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
+  lol = !"git add -A; git commit -am \"$(echo $(curl -s http://whatthecommit.com/index.txt)\"\")\""
 
 [core]
   editor = subl -w -n
@@ -74,3 +76,6 @@
   prompt = false
 [difftool "icdiff"]
   cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE
+
+[url "git@github.com:"]
+  insteadOf = https://github.com/

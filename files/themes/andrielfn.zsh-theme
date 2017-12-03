@@ -121,7 +121,7 @@ precmd() {
 # Define prompts
 #
 PROMPT="%(?.%F{green}.%F{red})➜%f " # Display a red prompt char on failure
-RPROMPT='$(git_time_since_commit) $(git_prompt_short_sha)%f'
+# RPROMPT='$(git_time_since_commit) $(git_prompt_short_sha)%f'
 
 # ------------------------------------------------------------------------------
 #
