@@ -1,4 +1,4 @@
-# @andrielfn .dotfiles
+# @andrielfn dotfiles
 macOS and developer environment preferences with Homebrew/GIT/rbenv/ZSH.
 
 ## Install
@@ -6,9 +6,5 @@ macOS and developer environment preferences with Homebrew/GIT/rbenv/ZSH.
 Copy this command into the terminal, and the setup will start.
 
 ```bash
-cd ~/
-git clone https://github.com/andrielfn/dotfiles.git .dotfiles
-cd .dotfiles && ./install.sh
+curl --remote-name https://raw.githubusercontent.com/andrielfn/dotfiles/master/bootstrap && sh bootstrap 2>&1 | tee ~/bootstrap.log
 ```
-
-![](http://files.andrielfn.com/Me9U0bmGMv.png)

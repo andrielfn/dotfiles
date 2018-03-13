@@ -1,23 +1,22 @@
 tap 'homebrew/bundle'
 tap 'homebrew/core'
-tap 'homebrew/dupes'
 tap 'homebrew/services'
 
 brew 'postgresql', restart_service: true
-brew 'rabbitmq', restart_service: true
-brew 'redis', restart_service: true
-brew 'sqlite'
+# brew 'rabbitmq', restart_service: true
+# brew 'redis', restart_service: true
+# brew 'sqlite'
 
-brew 'erlang'
-brew 'elixir'
+# brew 'erlang'
+# brew 'elixir'
 brew 'go'
-brew 'node'
+# brew 'node'
 
 brew 'ack'
 brew 'autojump'
-brew 'ansible'
+# brew 'ansible'
 brew 'yarn'
-brew 'phantomjs'
+# brew 'phantomjs'
 brew 'ruby-build'
 brew 'rbenv'
 brew 'wget'
