@@ -1,10 +1,19 @@
-# @andrielfn dotfiles
-macOS and developer environment preferences with Homebrew/GIT/rbenv/ZSH.
+# andrielfn's dotfiles
 
-## Install
+This repository contains the dotfiles, editor configs and custom shell scripts that I use on my Mac.
 
-Copy this command into the terminal, and the setup will start.
 
-```bash
-curl --remote-name https://raw.githubusercontent.com/andrielfn/dotfiles/master/bootstrap && sh bootstrap 2>&1 | tee ~/bootstrap.log
+## Installation
+
+Choose a place to store the dotfiles, like `~/code/dotfiles`.
+
+```
+git clone git://github.com/andrielfn/dotfiles ~/code/dotfiles
+cd ~/code/dotfiles
+```
+
+Run the following rake task to install everything:
+
+```
+rake install
 ```
