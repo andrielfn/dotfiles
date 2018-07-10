@@ -30,7 +30,7 @@ if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # Loading our .dotfiles (aliases, functions, exports, extras)
 # ~/.extra can be used for settings you don't want to commit.
-for file in ~/.dotfiles/files/shell/*; do
+for file in ~/code/dotfiles/shell/*; do
   [ -r "$file" ] && [ -f "$file" ] && source "$file";
 done;
 unset file;
