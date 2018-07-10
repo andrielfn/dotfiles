@@ -1,8 +1,7 @@
 # Dirs
 # ====
-alias code="cd ~/code"
+# alias code="cd ~/code"
 alias sublconf="cd ~/Library/Application\ Support/Sublime\ Text\ 3"
-alias ptec="cd ~/ptec"
 
 # Config
 # ======
@@ -10,11 +9,11 @@ alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
 
 # Shell
 # =====
-alias ll="ls -FGlahs"
+alias ll="exa -lhbgHa --git"
 alias ..="cd .."
 alias ...="cd ../.."
 alias grep="grep --color=auto"
-alias ls="ls -G"
+alias ls="exa"
 alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias lip="ipconfig getifaddr en0"
 alias key="cat ~/.ssh/id_rsa.pub | pbcopy; echo 'SSH key copied to clipboard!'"
@@ -49,12 +48,12 @@ alias rof="bin/rspec --only-failures"
 
 # Others
 # ======
-alias t="tree -I '.git|node_modules|bower_components|.DS_Store' --dirsfirst --filelimit 15 -L ${1:-3} -aC $2"
+alias tree="exa -T -I '.git|node_modules|bower_components|.DS_Store' --group-directories-first"
 alias marked="open -a Marked"
-alias dotfiles="subl ~/.dotfiles"
+alias dotfiles="subl ~/code/dotfiles"
 # alias t="ruby -I'lib:test'"
 alias g="git"
-alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers' | awk '{print $1}' | xargs kill -9 && echo 🔪"
+alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers|unicorn' | awk '{print $1}' | xargs kill -9 && echo 🔪"
 
 # Go
 # alias gb="go build"
