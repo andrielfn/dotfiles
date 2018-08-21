@@ -28,6 +28,7 @@
   rim = rebase -i master
   prune = fetch --prune
   r = reset
+  rh = reset HEAD
   undo = reset --soft HEAD^
   fup = log --since '1 day ago' --oneline --author andriel.nuernberg@plataformatec.com.br
   rank = shortlog -sn --no-merges
