@@ -54,7 +54,7 @@
 
 [includeIf "gitdir:~/"]
   path = .gitconfig-personal
-[includeIf "gitdir:~/ptec/"]
+[includeIf "gitdir:~/Pipefy/"]
   path = .gitconfig-work
 
 [merge]
