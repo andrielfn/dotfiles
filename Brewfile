@@ -53,9 +53,7 @@ brew 'libxml2'
 brew 'libxslt'
 brew 'openjpeg'
 brew 'webkit2png'
+brew 'exa'
 
 brew 'cmake'
 brew 'coreutils'
-
-brew 'homebrew/dupes/libiconv'
-brew 'homebrew/dupes/zlib'
