@@ -8,6 +8,8 @@ export HISTFILE="$HOME/.zsh_history"
 export HISTCONTROL="ignoreboth:erasedups" # Erase duplicates in history
 export HISTSIZE=10000 # Store 10k history entries
 
+export HOMEBREW_AUTO_UPDATE_SECS=600000
+
 # PATH
 export GOPATH="$HOME/code/go"
 export PATH="$HOME/.bin:$PATH"
