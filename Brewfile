@@ -54,6 +54,7 @@ brew 'libxslt'
 brew 'openjpeg'
 brew 'webkit2png'
 brew 'exa'
+brew 'bat'
 
 brew 'cmake'
 brew 'coreutils'

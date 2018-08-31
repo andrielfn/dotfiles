@@ -3,6 +3,7 @@ export BUNDLER_EDITOR="subl"
 export GEM_EDITOR="subl"
 export EDITOR="subl -w"
 export VISUAL="$EDITOR"
+export BAT_THEME="TwoDark"
 
 export HISTFILE="$HOME/.zsh_history"
 export HISTCONTROL="ignoreboth:erasedups" # Erase duplicates in history

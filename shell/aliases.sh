@@ -21,6 +21,7 @@ alias chunk="curl -s -T - chunk.io | pbcopy; echo 'URL copied to clipboard!'"
 alias hex="openssl rand -hex"
 alias fd='find . -type d -name'
 alias ff='find . -type f -name'
+alias cat='bat'
 
 # Show/hide hidden files in Finder
 # ================================
