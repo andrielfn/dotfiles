@@ -22,6 +22,10 @@ alias hex="openssl rand -hex"
 alias fd='find . -type d -name'
 alias ff='find . -type f -name'
 alias cat='bat'
+alias ping='prettyping --nolegend'
+alias prev="fzf --preview 'bat --color always {}'"
+alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules"
+alias help='tldr'
 
 # Show/hide hidden files in Finder
 # ================================
