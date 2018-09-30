@@ -33,7 +33,7 @@ alias ff='find . -type f -name'
 alias cat='bat'
 alias ping='prettyping --nolegend'
 alias prev="fzf --preview 'bat --color always {}'"
-alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules"
+alias usage="ncdu --color dark -rr -x --exclude .git --exclude node_modules"
 alias help='tldr'
 
 # Show/hide hidden files in Finder
@@ -59,6 +59,15 @@ alias st="bin/teaspoon"
 alias rdm="bin/rake db:migrate"
 alias rdr="bin/rake db:rollback"
 alias rof="bin/rspec --only-failures"
+
+# Others
+# ======
+alias tree="exa -T -I '.git|node_modules|bower_components|.DS_Store' --group-directories-first"
+alias marked="open -a Marked"
+alias dotfiles="subl ~/code/dotfiles"
+# alias t="ruby -I'lib:test'"
+alias g="git"
+alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers|unicorn' | awk '{print $1}' | xargs kill -9"
 
 # Go
 # alias gb="go build"
