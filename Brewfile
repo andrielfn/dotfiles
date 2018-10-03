@@ -3,20 +3,10 @@ tap 'homebrew/core'
 tap 'homebrew/services'
 
 brew 'postgresql', restart_service: true
-# brew 'rabbitmq', restart_service: true
-# brew 'redis', restart_service: true
-# brew 'sqlite'
-
-# brew 'erlang'
-# brew 'elixir'
-brew 'go'
-# brew 'node'
 
 brew 'ack'
 brew 'autojump'
-# brew 'ansible'
 brew 'yarn'
-# brew 'phantomjs'
 brew 'ruby-build'
 brew 'rbenv'
 brew 'wget'
