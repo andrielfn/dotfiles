@@ -40,13 +40,15 @@
   fix = commit --amend
   fixx = !git add . && git commit --amend --no-edit
   pom = push origin master
-	latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
+  latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
   lol = !"git add -A; git commit -am \"$(echo $(curl -s http://whatthecommit.com/index.txt)\"\")\""
+  m = !"git co main 2> /dev/null || git co master"
+
 
 [core]
-  editor = subl -w -n
+  editor = subl -w
   excludesfile = ~/.gitignore
-	pager = diff-so-fancy | less --tabs=1,5 -R
+  pager = diff-so-fancy | less --tabs=1,5 -R
   whitespace = warn
 
 [push]
@@ -55,7 +57,7 @@
 
 [includeIf "gitdir:~/"]
   path = .gitconfig-personal
-[includeIf "gitdir:~/Pipefy/"]
+[includeIf "gitdir:~/TRR/"]
   path = .gitconfig-work
 
 [merge]
@@ -67,7 +69,7 @@
 
 [commit]
   template = ~/.gitmessage
-	gpgsign = true
+  gpgsign = true
 
 [status]
   showUntrackedFiles = all
@@ -79,9 +81,9 @@
 [difftool "icdiff"]
   cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE
 
-[url "git@github.com:"]
-  insteadOf = https://github.com/
+# [url "git@github.com:"]
+#   insteadOf = https://github.com/
 [user]
-	signingkey = 4179D8DA00C42012
+  signingkey = 4179D8DA00C42012
 [gpg]
-	program = gpg
+  program = gpg

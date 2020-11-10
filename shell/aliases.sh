@@ -1,28 +1,17 @@
-# Dirs
-# ====
-# alias code="cd ~/code"
-alias sublconf="cd ~/Library/Application\ Support/Sublime\ Text\ 3"
-
-# Config
-# ======
-alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
-
 # Shell
 # =====
-alias tree="exa -T -I '.git|node_modules|bower_components|.DS_Store' --group-directories-first"
-alias marked="open -a Marked"
-alias dotfiles="subl ~/code/dotfiles"
+alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
+alias dotfiles="code ~/.dotfiles"
 alias g="git"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers|unicorn' | awk '{print $1}' | xargs kill -9 && echo 🔪"
 alias ll="exa -lhbgH --git"
 alias ll="exa -lhbgHa --git"
 alias ls="exa"
 alias ..="cd .."
 alias ...="cd ../.."
 alias grep="grep --color=auto"
-alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+# alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias lip="ipconfig getifaddr en0"
 alias key="cat ~/.ssh/id_rsa.pub | pbcopy; echo 'SSH key copied to clipboard!'"
 alias chunk="curl -s -T - chunk.io | pbcopy; echo 'URL copied to clipboard!'"
@@ -60,17 +49,9 @@ alias rdm="bin/rake db:migrate"
 alias rdr="bin/rake db:rollback"
 alias rof="bin/rspec --only-failures"
 
-# Others
-# ======
-alias tree="exa -T -I '.git|node_modules|bower_components|.DS_Store' --group-directories-first"
-alias marked="open -a Marked"
-alias dotfiles="subl ~/code/dotfiles"
-# alias t="ruby -I'lib:test'"
-alias g="git"
-alias matatodomundo="ps aux | pgrep -lf 'rack|spring|rails|ruby|puma|sneakers|unicorn' | awk '{print $1}' | xargs kill -9"
-
-# Go
-# alias gb="go build"
-# alias gg="go get"
-# alias gr="go run"
-# alias goc="cd $GOPATH/src/github.com/andrielfn"
+# Elixir/Phoenix
+# =====
+# alias ps="mix phx.server"
+alias mt="mix test"
+alias mem="mix ecto.migrate"
+alias mer="mix ecto.rollback"
