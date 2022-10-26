@@ -3,6 +3,49 @@
 #   trash $1
 # }
 
+function prs() {
+  GH_FORCE_TTY=100% gh pr list | fzf --height 90% --ansi --preview 'GH_FORCE_TTY=100% gh pr view {1}' --preview-window down --header-lines 3 | awk '{print $1}' | xargs gh pr view --web
+}
+
+function prco() {
+  GH_FORCE_TTY=100% gh pr list | fzf --height 50% --ansi --preview 'GH_FORCE_TTY=100% gh pr view {1}' --preview-window down --header-lines 3 | awk '{print $1}' | xargs gh pr view --web
+}
+
+# function gco() {
+#   git bb | fzf --ansi --height 40% --layout=reverse --border | awk '{print $1}' | xargs git checkout
+# }
+
+function fzf-git-branch() {
+    git rev-parse HEAD > /dev/null 2>&1 || return
+
+    git branch --all --color=always --sort=-committerdate |
+        grep -v HEAD |
+        fzf --height 50% --ansi --no-multi --layout=reverse --preview-window right:65% \
+            --preview 'git log -n 50 --color=always --date=short --pretty="format:%C(auto)%cd %h%d %s" $(sed "s/.* //" <<< {})' |
+        sed "s/.* //"
+}
+
+function fzf-git-checkout() {
+    git rev-parse HEAD > /dev/null 2>&1 || return
+
+    local branch
+
+    branch=$(fzf-git-branch)
+    if [[ "$branch" = "" ]]; then
+        echo "No branch selected."
+        return
+    fi
+
+    # If branch name starts with 'remotes/' then it is a remote branch. By
+    # using --track and a remote branch name, it is the same as:
+    # git checkout -b branchName --track origin/branchName
+    if [[ "$branch" = 'remotes/'* ]]; then
+        git checkout --track $branch
+    else
+        git checkout $branch;
+    fi
+}
+
 # Open a project in my own GitHub
 function ghopen() {
   open "https://github.com/andrielfn/${1}";

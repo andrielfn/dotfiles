@@ -15,8 +15,7 @@ if cmd_exists 'brew'; then
   brew update
 else
   print_success 'Installing Brew.\n'
-  /usr/bin/ruby -e \
-    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
 # Copy dotfiles Brewfile to Home

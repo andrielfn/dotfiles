@@ -4,6 +4,7 @@ alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
 alias dotfiles="subl ~/.dotfiles"
 alias git="hub"
 alias g="git"
+alias gco='fzf-git-checkout'
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias ll="exa -lhbgH --git"
