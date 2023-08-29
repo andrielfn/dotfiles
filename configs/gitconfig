@@ -11,6 +11,7 @@
   st = status -sb
   s = status -sb
   ci = commit
+  cai = !"aicommits"
   wip = !git add . && git commit -am 'WIP :construction:'
   stash-all = stash save --include-untracked
   b = branch

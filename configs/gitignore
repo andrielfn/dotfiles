@@ -52,3 +52,4 @@ vendor/bundle
 node_modules
 .envrc
 .elixir_ls
+.vscode

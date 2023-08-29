@@ -91,11 +91,6 @@ function parse_git_branch {
    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
 
-# Get the ruby version name using rbenv
-function rb-version {
-  rbenv version-name 2>/dev/null
-}
-
 # A function to extract correctly any archive based on extension
 # USE: extract imazip.zip
 #      extract imatar.tar
