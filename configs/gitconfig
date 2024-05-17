@@ -45,9 +45,8 @@
   lol = !"git add -A; git commit -am \"$(echo $(curl -s http://whatthecommit.com/index.txt)\"\")\""
   m = !"git co main 2> /dev/null || git co master"
 
-
 [core]
-  editor = subl -w
+  editor = subl -w -n
   excludesfile = ~/.gitignore
   pager = diff-so-fancy | less --tabs=1,5 -R
   whitespace = warn
@@ -58,6 +57,7 @@
 
 [includeIf "gitdir:~/"]
   path = .gitconfig-personal
+
 [includeIf "gitdir:~/Stord/"]
   path = .gitconfig-work
 
@@ -75,23 +75,11 @@
 [status]
   showUntrackedFiles = all
 
-# [diff]
-#   tool = icdiff
-# [difftool]
-#   prompt = false
-# [difftool "icdiff"]
-#   cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE
-
-[diff]
-  tool = vscode
-[difftool "vscode"]
-  cmd = code --wait --diff $LOCAL $REMOTE
-
-# [url "git@github.com:"]
-#   insteadOf = https://github.com/
 [user]
   signingkey = 4179D8DA00C42012
+
 [gpg]
   program = gpg
-[url "https://xxxx:@github.com"]
+
+[url "https://:@github.com"]
 	insteadOf = https://github.com

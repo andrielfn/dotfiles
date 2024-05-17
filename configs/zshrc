@@ -39,6 +39,8 @@ unset file;
 # `brew install zsh-syntax-highlighting` is required.
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+source /opt/homebrew/opt/git-extras/share/git-extras/git-extras-completion.zsh
+
 # [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 eval "$(starship init zsh)"

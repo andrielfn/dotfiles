@@ -1,7 +1,7 @@
 # Shell
 # =====
 alias reload=". ~/.zshrc && echo 'ZSH reloaded! :D'"
-alias dotfiles="subl ~/.dotfiles"
+alias dotfiles="zed ~/.dotfiles"
 alias git="hub"
 alias g="git"
 alias gco='fzf-git-checkout'
@@ -26,35 +26,18 @@ alias ping='prettyping --nolegend'
 alias prev="fzf --preview 'bat --color always {}'"
 alias usage="ncdu --color dark -rr -x --exclude .git --exclude node_modules"
 alias help='tldr'
-alias s="subl ."
+alias z="zed ."
 
 # Show/hide hidden files in Finder
 # ================================
 alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
 alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
 
-# Bundler
-# =======
-alias b="bundle"
-alias bi="b install --jobs=2"
-alias bu="b update"
-alias be="b exec"
-alias bo="b open"
-
-# Rails
-# =====
-# alias rc="bin/rails c"
-# alias rs="bin/rails s"
-# alias s="bin/spring"
-# alias sr="bin/rspec"
-# alias st="bin/teaspoon"
-# alias rdm="bin/rake db:migrate"
-# alias rdr="bin/rake db:rollback"
-# alias rof="bin/rspec --only-failures"
-
 # Elixir/Phoenix
 # =====
 # alias ps="mix phx.server"
 alias mt="mix test"
+alias mf="mix test --failed"
 alias mem="mix ecto.migrate"
 alias mer="mix ecto.rollback"
+alias px="iex -S mix phx.server"

@@ -3,6 +3,29 @@
 #   trash $1
 # }
 
+delete_old_branches() {
+  # Set default value for age limit
+  local age_limit=${1:-30}
+
+  # Get the current date in epoch time
+  local current_date=$(date +%s)
+
+  # List all branches and iterate over them
+  git for-each-ref --sort=committerdate refs/heads/ --format='%(refname:short) %(committerdate:unix)' | while read branch last_commit_date
+  do
+    # Calculate the age of the branch
+    local branch_age=$(( (current_date - last_commit_date) / 86400 )) # 86400 seconds in a day
+
+    # Check if the branch is older than the specified limit
+    if [ "$branch_age" -gt "$age_limit" ]; then
+      # Delete the branch
+      echo "Deleting branch: $branch"
+      git branch -D "$branch"
+    fi
+  done
+}
+
+
 function prs() {
   GH_FORCE_TTY=100% gh pr list | fzf --height 90% --ansi --preview 'GH_FORCE_TTY=100% gh pr view {1}' --preview-window down --header-lines 3 | awk '{print $1}' | xargs gh pr view --web
 }
@@ -59,12 +82,7 @@ function port() {
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
     local port="${1:-8000}"
-    python -m SimpleHTTPServer "$port"
-}
-
-# Build a Go project and then run it
-function gox {
-  go install && ${PWD##*/}
+    python3 -m http.server "$port"
 }
 
 # Determine size of a file or total size of a directory
@@ -130,33 +148,3 @@ if [ -x "$(which convert)" ]; then
     echo 'Done.';
   }
 fi;
-
-# Remove merged branches.
-function rmb () {
-  # This has to be run from master
-  git checkout master
-
-  # Update our list of remotes
-  git fetch
-  git remote prune origin
-
-  # Remove local fully merged branches
-  git branch --merged master | grep -v 'master$' | xargs git branch -d
-
-  # Show remote fully merged branches
-  echo "The following remote branches are fully merged and will be removed:"
-  git branch -r --merged master | sed 's/ *origin\///' | grep -v 'master$'
-
-  # read -p "Continue (y/n)? " <-- for bash
-  read "reply?Continue (y/n)?"
-  if [[ "$reply" =~ ^[Yy]$ ]]
-  then
-     # Remove remote fully merged branches
-     git branch -r --merged master | sed 's/ *origin\///' | grep -v 'master$' | xargs -I% git push origin :%
-     echo "Done!"
-  fi
-}
-
-function rsb() {
-  git checkout -q master && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base master $branch) && [[ $(git cherry master $(git commit-tree $(git rev-parse $branch^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done
-}

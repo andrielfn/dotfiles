@@ -113,3 +113,17 @@ disabled = true
 [golang]
 disabled = true
 
+[kubernetes]
+format = '[\[](fg:243)[$context](underline italic fg:221)[([/](fg:243)$namespace)](italic fg:222)[\]](fg:243) '
+disabled = false
+detect_folders = ['helm']
+contexts = [
+    { context_pattern = ".*production.*", style = "red", symbol = "💔 ", context_alias = "prod" },
+    { context_pattern = ".*nonprod.*", style = "green", symbol = "💔 ", context_alias = "nonprod" },
+    { context_pattern = ".*dev.*", style = "green", symbol = "💔 ", context_alias = "dev" }
+]
+
+# [kubernetes.context_aliases]
+# "gke_stord-nonprod_us-east1_orion-dev--us-east1" = "dev"
+# "gke_stord-nonprod_us-east1_orion-nonprod" = "nonprod"
+# "gke_stord-production_us-east1_orion-production" = "prod"
