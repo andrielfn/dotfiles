@@ -22,6 +22,8 @@ brew "tldr"
 brew "prettyping"
 brew "trash"
 brew "ncdu"
+brew "gnupg"
+brew "pinentry-mac"
 
 # Git and version control
 brew "git"

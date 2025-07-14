@@ -16,6 +16,9 @@ git/gitignore:~/.gitignore
 git/gitmessage:~/.gitmessage
 shell/zshrc:~/.zshrc
 
+# GPG configuration
+gpg/:~/.gnupg
+
 # XDG config directory (folder mapping)
 mise/:~/.config/mise/
 zed/:~/.config/zed/
