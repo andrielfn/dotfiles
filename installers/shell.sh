@@ -24,6 +24,31 @@ setup_zsh() {
   fi
 }
 
+setup_oh_my_zsh() {
+  print_in_yellow "=> Setting up Oh My Zsh..."
+
+  # Check if Oh My Zsh is already installed
+  if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    print_success "Oh My Zsh is already installed"
+    return 0
+  fi
+
+  # Install Oh My Zsh non-interactively
+  print_in_blue "Installing Oh My Zsh..."
+  export RUNZSH=no
+  export CHSH=no
+  export KEEP_ZSHRC=yes
+
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+  if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    print_success "Oh My Zsh installed successfully"
+  else
+    print_error "Failed to install Oh My Zsh"
+    return 1
+  fi
+}
+
 setup_shell_configs() {
   local dotfiles_dir="$1"
 
@@ -160,6 +185,9 @@ main() {
 
   # Setup ZSH
   setup_zsh
+
+  # Setup Oh My Zsh
+  setup_oh_my_zsh
 
   # Setup shell configurations
   setup_shell_configs "$dotfiles_dir"
