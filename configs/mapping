@@ -17,7 +17,8 @@ git/gitmessage:~/.gitmessage
 shell/zshrc:~/.zshrc
 
 # GPG configuration
-gpg/:~/.gnupg
+gpg/gpg-agent.conf:~/.gnupg/gpg-agent.conf
+gpg/gpg.conf:~/.gnupg/gpg.conf
 
 # XDG config directory (folder mapping)
 mise/:~/.config/mise/
