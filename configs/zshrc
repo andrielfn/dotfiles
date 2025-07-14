@@ -124,12 +124,4 @@ if [[ -f "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
 fi
 
-# Welcome message
-if [[ -o interactive ]]; then
-    echo "🚀 Welcome to your enhanced shell environment!"
-    echo "Environment: $(detect_environment)"
-    echo "Type 'sysinfo' for system information"
-    echo ""
-fi
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

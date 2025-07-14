@@ -12,10 +12,11 @@
 
 # Home directory configs
 starship.toml:~/.starship.toml
+zshrc:~/.zshrc
+hushlogin:~/.hushlogin
+inputrc:~/.inputrc
 git/gitignore:~/.gitignore
 git/gitmessage:~/.gitmessage
-shell/zshrc:~/.zshrc
-shell/hushlogin:~/.hushlogin
 
 # GPG configuration
 gpg/gpg-agent.conf:~/.gnupg/gpg-agent.conf
