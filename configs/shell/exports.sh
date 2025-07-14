@@ -5,9 +5,10 @@ export VISUAL="$EDITOR"
 # Shell history configuration
 export HISTFILE="$HOME/.zsh_history"
 export HISTCONTROL="ignoreboth:erasedups"
-export HISTSIZE=50000
-export SAVEHIST=50000
-export HISTFILESIZE=50000
+export HISTSIZE=100000000
+export SAVEHIST=100000000
+export HISTFILESIZE=100000000
+export HIST_STAMPS='dd/mm/yyyy'
 
 # Homebrew configuration
 export HOMEBREW_AUTO_UPDATE_SECS=600000
@@ -23,7 +24,6 @@ export PATH="/opt/homebrew/sbin:$PATH"
 
 # Mise configuration
 export PATH="$HOME/.local/share/mise/shims:$PATH"
-eval "$(mise activate zsh)"
 
 # PostgreSQL configuration
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"

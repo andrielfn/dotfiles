@@ -9,6 +9,9 @@ export DOTFILES_DIR="$HOME/.dotfiles"
 # ZSH CONFIGURATION
 # =============================================================================
 
+# Disable completion security check
+ZSH_DISABLE_COMPFIX=true
+
 # History settings
 setopt HIST_VERIFY
 setopt SHARE_HISTORY
@@ -19,6 +22,7 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_REDUCE_BLANKS
+setopt HIST_FIND_NO_DUPS
 setopt EXTENDED_HISTORY
 
 # Directory settings
