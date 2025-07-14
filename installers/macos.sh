@@ -24,10 +24,6 @@ configure_general_ui() {
   print_step "Enabling dark mode..."
   defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
 
-  # Enable auto-hide menu bar
-  print_step "Auto-hiding menu bar..."
-  defaults write NSGlobalDomain _HIHideMenuBar -bool true
-
   # Disable the "Are you sure you want to open this application?" dialog
   print_step "Disabling app quarantine dialog..."
   defaults write com.apple.LaunchServices LSQuarantine -bool false
