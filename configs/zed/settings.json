@@ -1,0 +1,103 @@
+{
+  "show_edit_predictions": false,
+  "git": {
+    "inline_blame": {
+      "enabled": false
+    }
+  },
+  "icon_theme": "Catppuccin Latte",
+  "ssh_connections": [
+    {
+      "host": "192.168.0.10",
+      "username": "andrielfn",
+      "projects": [
+        {
+          "paths": ["/etc"]
+        },
+        {
+          "paths": ["/opt"]
+        }
+      ]
+    },
+    {
+      "host": "192.168.0.10",
+      "username": "andrielfn",
+      "projects": []
+    }
+  ],
+  "scroll_beyond_last_line": "off",
+  "features": {
+    "edit_prediction_provider": "zed"
+  },
+  "telemetry": {
+    "metrics": true
+  },
+  "agent": {
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-3-5-sonnet-latest"
+    },
+  },
+  "wrap_guides": [120],
+  "ui_font_size": 17,
+  "theme": "Rosé Pine Dawn",
+  "buffer_font_size": 17,
+  // "base_keymap": "SublimeText",
+
+  "tab_size": 2,
+
+  "buffer_font_features": {
+    "calt": false
+  },
+  "buffer_font_ligatures": true,
+  "buffer_font_family": "Cascadia Code",
+  "buffer_font_weight": 300,
+  "buffer_line_height": {
+    "custom": 1.8
+  },
+  "elixir": {
+    "lsp": "next_ls"
+  },
+  "languages": {
+    "Elixir": {
+      "show_whitespaces": "selection",
+      "language_servers": ["next-ls"]
+    }
+  },
+  "file_scan_exclusions": [
+    "**/.elixir-tools",
+    "**/.github",
+    "**/.elixir-tools",
+    "**/_build",
+    "**/deps",
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/.classpath",
+    "**/.settings",
+    "**/node_modules",
+    "**/rel"
+  ],
+  "lsp": {
+    // how you configure Next LS, notice the kebab casing
+    "next-ls": {
+      "initialization_options": {
+        "extensions": {
+          // example configuring the extensions
+          "credo": { "enable": false }
+        },
+        "experimental": {
+          // example configuring the experimental options
+          "completions": { "enable": true }
+        }
+      }
+    }
+  },
+  "file_types": {
+    "JSON": ["prettierrc"]
+    // "HTML": ["heex"]
+  }
+}

@@ -183,16 +183,7 @@ setup_git_configuration() {
     create_symlink "$DOTFILES_DIR/env/$env/.gitconfig-$env" "$HOME/.gitconfig-$env"
   fi
 
-  # Create git message templates
-  if [[ -f "$DOTFILES_DIR/configs/git/gitmessage" ]]; then
-    create_symlink "$DOTFILES_DIR/configs/git/gitmessage" "$HOME/.gitmessage"
-  fi
-
-  # Create global gitignore
-  if [[ -f "$DOTFILES_DIR/configs/git/gitignore" ]]; then
-    create_symlink "$DOTFILES_DIR/configs/git/gitignore" "$HOME/.gitignore"
-  fi
-
+  # Note: gitignore and gitmessage are now handled by the centralized config system
   print_success "Git configuration complete"
 }
 

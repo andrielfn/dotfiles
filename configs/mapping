@@ -1,0 +1,21 @@
+# Configuration mapping file
+# Format: source_path:destination_path
+#
+# Individual files:
+#   starship.toml:~/.starship.toml
+#
+# Entire directories (trailing slash):
+#   zed/:~/.config/zed/
+#
+# Lines starting with # are comments
+# Empty lines are ignored
+
+# Home directory configs
+starship.toml:~/.starship.toml
+git/gitignore:~/.gitignore
+git/gitmessage:~/.gitmessage
+shell/zshrc:~/.zshrc
+
+# XDG config directory (folder mapping)
+mise/:~/.config/mise/
+zed/:~/.config/zed/

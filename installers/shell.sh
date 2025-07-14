@@ -87,12 +87,8 @@ setup_starship() {
     brew install starship
   fi
 
-  # Link Starship configuration
-  local dotfiles_dir="$(cd "$(dirname "$0")/.." && pwd)"
-  if [[ -f "$dotfiles_dir/configs/tools/starship.toml" ]]; then
-    create_symlink "$dotfiles_dir/configs/tools/starship.toml" "$HOME/.starship.toml"
-    print_success "Starship configuration linked"
-  fi
+  # Note: Starship configuration is now handled by the centralized config system
+  print_success "Starship setup complete"
 }
 
 setup_zoxide() {
@@ -178,6 +174,9 @@ main() {
 
   # Create environment indicator
   create_environment_indicator
+
+  # Setup configurations
+  setup_configurations "$dotfiles_dir"
 
   print_success "Shell setup complete!"
   print_in_blue "Please restart your terminal or run: source ~/.zshrc"

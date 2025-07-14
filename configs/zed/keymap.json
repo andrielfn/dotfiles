@@ -1,0 +1,42 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "cmd-shift-r": "project_symbols::Toggle",
+      "cmd-r": "outline::Toggle",
+      "cmd-t": "file_finder::Toggle",
+      "cmd-end": [
+        "task::Spawn",
+        { "task_name": "mix test $ZED_FILE:$ZED_ROW" }
+      ],
+      "cmd-pagedown": ["task::Spawn", { "task_name": "mix test" }]
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "cmd-;": "editor::Hover",
+      "ctrl-right": "editor::MoveToNextSubwordEnd",
+      "ctrl-left": "editor::MoveToPreviousSubwordStart",
+      "ctrl-shift-right": "editor::SelectToNextSubwordEnd",
+      "ctrl-shift-left": "editor::SelectToPreviousSubwordStart",
+      "ctrl-shift-up": "editor::AddSelectionAbove",
+      "ctrl-shift-down": "editor::AddSelectionBelow",
+      "cmd-alt-down": "editor::GoToDefinition",
+      "alt-shift-p": "editor::CopyPermalinkToLine",
+      "alt-shift-o": "editor::OpenPermalinkToLine",
+      "cmd-k cmd-l": "editor::ConvertToLowerCase",
+      "cmd-k cmd-u": "editor::ConvertToUpperCase",
+      "cmd-shift-d": "editor::DuplicateLineDown",
+      "cmd-l cmd-p": "workspace::CopyRelativePath",
+      "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
+      "alt-.": ["workspace::SendKeystrokes", "|>"]
+    }
+  },
+  {
+    "context": "ProjectPanel && not_editing",
+    "bindings": {
+      "c": "project_panel::CollapseAllEntries"
+    }
+  }
+]

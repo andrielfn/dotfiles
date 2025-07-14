@@ -30,11 +30,8 @@ setup_mise_config() {
   # Create mise config directory
   mkdir -p "$HOME/.config/mise"
 
-  # Link mise configuration
-  if [[ -f "$dotfiles_dir/configs/tools/mise.toml" ]]; then
-    ln -sf "$dotfiles_dir/configs/tools/mise.toml" "$HOME/.config/mise/config.toml"
-    print_success "mise configuration linked"
-  fi
+  # Note: mise configuration is now handled by the centralized config system
+  print_success "mise configuration will be linked by the centralized config system"
 
   print_success "mise configuration complete"
 }
