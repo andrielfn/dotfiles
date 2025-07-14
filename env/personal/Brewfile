@@ -1,0 +1,12 @@
+# Personal-specific applications and tools
+# This extends the shared Brewfile
+
+# Personal development tools
+brew "ffmpeg"
+
+# Personal applications
+cask "discord"
+cask "daisydisk"
+
+# Personal utilities
+cask "karabiner-elements"

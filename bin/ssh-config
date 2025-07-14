@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Path to your SSH config file
+SSH_CONFIG="$HOME/.ssh/config"
+
+# Check for dry run mode
+DRY_RUN=false
+if [ "$1" = "--dry-run" ]; then
+  DRY_RUN=true
+fi
+
+# Temporary file for the new config
+TEMP_CONFIG=$(mktemp)
+
+# Get the list of running servers
+SERVER_LIST=$(hcloud server list | awk 'NR>1 {for(i=1;i<=NF;i++) if($i=="running") {print $2 "," $(i+1); next}}')
+
+# Start with existing non-server entries
+sed -n '/^Host [a-zA-Z0-9_-]\+$/,/^$/p' "$SSH_CONFIG" >"$TEMP_CONFIG"
+
+# Append server entries
+while IFS=',' read -r name ip; do
+  if [ -n "$name" ] && [ -n "$ip" ]; then
+    echo -e "\nHost $name\n    HostName $ip\n    User root" >>"$TEMP_CONFIG"
+  fi
+done <<<"$SERVER_LIST"
+
+# Check if there are any differences
+if ! cmp -s "$SSH_CONFIG" "$TEMP_CONFIG"; then
+  if $DRY_RUN; then
+    echo "Dry run: The following changes would be made to $SSH_CONFIG:"
+    diff "$SSH_CONFIG" "$TEMP_CONFIG"
+  else
+    # Backup the existing config file
+    cp "$SSH_CONFIG" "$SSH_CONFIG.bak"
+
+    # Replace the old config with the new one
+    mv "$TEMP_CONFIG" "$SSH_CONFIG"
+    echo "SSH config updated successfully."
+  fi
+else
+  echo "No changes needed in SSH config."
+fi
+
+# Clean up
+rm -f "$TEMP_CONFIG"

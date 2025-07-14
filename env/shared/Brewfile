@@ -1,0 +1,54 @@
+tap "homebrew/bundle"
+tap "homebrew/cask"
+
+# Core utilities
+brew "coreutils"
+brew "findutils"
+brew "gnu-sed"
+brew "grep"
+brew "gawk"
+brew "curl"
+brew "wget"
+brew "openssl"
+brew "cmake"
+
+# Shell and terminal enhancements
+brew "zsh"
+brew "starship"
+brew "zoxide"
+brew "fzf"
+brew "bat"
+brew "eza"
+brew "ripgrep"
+brew "fd"
+brew "tldr"
+brew "prettyping"
+brew "trash"
+brew "ncdu"
+
+# Git and version control
+brew "git"
+brew "git-delta"
+brew "gh"
+brew "lazygit"
+
+# Development tools
+brew "mise"
+brew "direnv"
+brew "ack"
+
+# Core applications
+cask "1password"
+cask "google-chrome"
+cask "iterm2"
+cask "raycast"
+cask "shottr"
+cask "spotify"
+cask "flux"
+cask "granola"
+cask "mimestream"
+cask "zed"
+cask "tableplus"
+cask "yaak"
+cask "notion-calendar"
+

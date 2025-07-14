@@ -1,0 +1,303 @@
+# =============================================================================
+# GLOBAL GITIGNORE
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.fseventsd
+.TemporaryItems
+.apdisk
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# EDITORS
+# =============================================================================
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+Session.vim
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Zed
+.zed/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# =============================================================================
+# DEVELOPMENT
+# =============================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.pnp.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Ruby
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+.bundle/
+vendor/bundle
+.ruby-version
+.ruby-gemset
+
+# Elixir
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/*.secret.exs
+.elixir_ls/
+.lexical/
+
+# Erlang
+.rebar3
+_*
+.eunit
+*.o
+*.beam
+*.plt
+*.swp
+*.swo
+.erlang.cookie
+ebin
+log
+erl_crash.dump
+.rebar
+logs
+_build
+.concrete/DEV_MODE
+
+# =============================================================================
+# DATABASES
+# =============================================================================
+
+# SQLite
+*.sqlite
+*.sqlite3
+*.db
+
+# PostgreSQL
+*.pgsql
+
+# MySQL
+*.mysql
+
+# =============================================================================
+# LOGS AND TEMP FILES
+# =============================================================================
+
+# Log files
+*.log
+*.logs
+log/
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# GPG keys
+*.asc
+*.gpg
+*.pgp
+
+# API keys and secrets
+.secrets
+secrets.yml
+secrets.json
+.credentials
+
+# =============================================================================
+# MISCELLANEOUS
+# =============================================================================
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Cache directories
+.cache/
+.sass-cache/
+.npm/
+.yarn/
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+
+# Dependency directories
+bower_components/
+jspm_packages/
+
+# Build outputs
+build/
+dist/
+public/build/
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Documentation
+docs/_build/
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+
+# Local configuration
+.local/
+local/
+.localrc
+.envrc.local
+
+# Personal notes
+TODO.md
+NOTES.md
+notes.txt
+
+# Backup files
+*.orig
+*.bak
+*.backup
+
+# Tool-specific
+.tool-versions.local
+.mise.local.toml
+.asdf.local
+.ruby-version.local
+.node-version.local
+.python-version.local

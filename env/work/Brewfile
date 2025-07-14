@@ -1,0 +1,6 @@
+# Work-specific applications and tools
+# This extends the shared Brewfile
+
+# Work applications
+cask "slack"
+cask "zoom"

@@ -1,0 +1,131 @@
+[color]
+diff = auto
+grep = auto
+interactive = auto
+status = auto
+branch = auto
+ui = auto
+
+[delta]
+navigate = true
+line-numbers = true
+side-by-side = false
+features = decorations
+whitespace-error-style = 22 reverse
+
+[delta "decorations"]
+commit-decoration-style = bold yellow box ul
+file-style = bold yellow ul
+file-decoration-style = none
+hunk-header-decoration-style = yellow box
+
+[core]
+editor = zed --wait --new
+excludesfile = ~/.gitignore
+pager = delta
+whitespace = warn
+autocrlf = input
+
+[push]
+default = current
+followTags = true
+autoSetupRemote = true
+
+[pull]
+rebase = true
+
+[merge]
+ff = false
+conflictstyle = diff3
+tool = vscode
+
+[diff]
+colorMoved = default
+algorithm = patience
+
+[commit]
+template = ~/.gitmessage
+gpgsign = true
+
+[status]
+showUntrackedFiles = all
+
+[gpg]
+program = gpg
+
+[init]
+defaultBranch = main
+
+[rerere]
+enabled = true
+
+[alias]
+# Status and info
+st = status -sb
+s = status -sb
+
+# Commit shortcuts
+ci = commit
+cai = "!aicommits"
+wip = !git add . && git commit -am 'WIP :construction:'
+fix = commit --amend --no-edit
+
+# Branch operations
+b = branch
+co = checkout
+cob = checkout -b
+com = "!git co main 2> /dev/null || git co master"
+m = "!git co main 2> /dev/null || git co master"
+
+# Diff operations
+d = diff
+ds = diff --staged
+wd = diff --color-words
+
+# Log operations
+l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+ls = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short
+lf = log --pretty=format:'%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]' --decorate --date=short --numstat
+
+# Push/pull operations
+pf = push --force-with-lease
+pom = push origin main
+gpsup = "!git push --set-upstream origin $(git branch --show-current)"
+
+# Stash operations
+stash-all = stash save --include-untracked
+sp = stash pop
+
+# Rebase operations
+rc = rebase --continue
+rim = rebase -i main
+
+# Utility operations
+ap = add --patch
+r = reset
+rh = reset HEAD
+undo = reset --soft HEAD^
+prune = fetch --prune
+
+# Information
+tags = tag -l
+branches = branch -a
+remotes = remote -v
+latest = for-each-ref --count=10 --sort=-committerdate --format='%(committerdate:short) %(refname:short)'
+rank = shortlog -sn --no-merges
+
+# Changelog generation
+cl = "!git log $1..${2:-main} --oneline --no-merges --pretty=format:'- %s (%h)'"
+
+# GitHub integration
+pr = "!gh pr create"
+prv = "!gh pr view"
+
+# Fun commits (use with caution!)
+lol = "!git add -A; git commit -am \"$(echo $(curl -s http://whatthecommit.com/index.txt))\""
+
+[includeIf "gitdir:~/Code/"]
+path = ~/.gitconfig-personal
+
+[includeIf "gitdir:~/Work/"]
+path = ~/.gitconfig-work

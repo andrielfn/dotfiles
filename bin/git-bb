@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Determine the default branch name (main or master, typically)
+DEFAULT_BRANCH=$(git branch -r | grep 'origin/HEAD' | awk -F '/' '{print $NF}')
+
+# Fallback if origin/HEAD isn't available or doesn't point to main/master
+if [ -z "$DEFAULT_BRANCH" ]; then
+  if git show-ref --verify --quiet refs/heads/main; then
+    DEFAULT_BRANCH="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    DEFAULT_BRANCH="master"
+  else
+    echo "Error: Could not determine the default branch (checked for main and master)." >&2
+    exit 1
+  fi
+fi
+
+git for-each-ref --sort=-committerdate --format='%(refname:short)|%(authorname)|%(committerdate:relative)' refs/heads |
+  awk -v default_branch="$DEFAULT_BRANCH" -F'|' \
+    '$1 != default_branch {
+    cmd = sprintf("git branch --merged %s | grep -q -w \"%s\"", default_branch, $1)
+    merged_status = system(cmd)
+    printf "%s\033[32m%-40s\033[0m \033[35m%-20s\033[0m %s\n", (merged_status == 0 ? "\033[33m✔  \033[0m" : "   "), $1, $2, $3
+  }'

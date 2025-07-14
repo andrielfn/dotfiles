@@ -1,0 +1,109 @@
+#!/bin/zsh
+
+# Color definitions
+RED=$'\e[0;31m'
+GREEN=$'\e[0;32m'
+YELLOW=$'\e[0;33m'
+BLUE=$'\e[0;34m'
+MAGENTA=$'\e[0;35m'
+CYAN=$'\e[0;36m'
+NC=$'\e[0m' # No Color
+
+# Function to get the staged changes
+get_staged_changes() {
+  git diff --cached
+}
+
+# Function to generate commit message using Claude 3 Haiku
+generate_commit_message() {
+  local diff="$1"
+  local prompt="You are an expert software engineer tasked with writing clear, concise, and informative git commit messages.
+
+Review the provided git diff carefully and generate a commit message based on the changes.
+
+Guidelines for the commit message:
+3. Use the imperative mood in the description (e.g., 'add' not 'added').
+4. The commit message should ideally be a single line, no longer than 100 characters.
+5. Do not include any additional description, body, or footer.
+6. Focus on the most significant change if there are multiple changes.
+
+Reply with ONLY the single-line commit message, without any additional text, quotes, or comments."
+
+  local payload=$(jq -n \
+    --arg model "claude-3-5-sonnet-20240620" \
+    --arg prompt "$prompt" \
+    --arg diff "$diff" \
+    '{model: $model, max_tokens: 1024, messages: [{role: "user", content: ($prompt + "\n\nHere are the git diffs:\n```\n" + $diff + "\n```")}]}')
+
+  local response=$(curl -s -X POST "https://api.anthropic.com/v1/messages" \
+    -H "Content-Type: application/json" \
+    -H "x-api-key: $ANTHROPIC_API_KEY" \
+    -H "anthropic-version: 2023-06-01" \
+    -d "$payload")
+
+  echo "$response" | jq -r '.content[0].text // empty' 2>/dev/null || echo "Error: Failed to generate commit message"
+}
+
+# Function to check message format
+check_message_format() {
+  local message="$1"
+  local header=$(echo "$message" | head -n1)
+  if [ ${#header} -gt 80 ]; then
+    echo "${YELLOW}Warning: Commit header is longer than 100 characters.${NC}"
+  fi
+  if [ $(echo "$message" | wc -l) -gt 10 ]; then
+    echo "${YELLOW}Warning: Commit message is quite long ($(echo "$message" | wc -l) lines).${NC}"
+  fi
+}
+
+# Main script
+echo "${CYAN}=== AI-Assisted Commit ===${NC}"
+
+staged_changes=$(get_staged_changes)
+
+if [ -z "$staged_changes" ]; then
+  echo "${RED}No staged changes found. Please stage your changes before running this script.${NC}"
+  exit 1
+fi
+
+echo "${BLUE}Generating commit message...${NC}"
+commit_message=$(generate_commit_message "$staged_changes")
+
+while true; do
+  if [[ -z "$commit_message" ]]; then
+    echo "${RED}Error: Failed to generate commit message.${NC}"
+    exit 1
+  fi
+
+  echo "\n${GREEN}Commit message:${NC}"
+  echo "${MAGENTA}------------------------${NC}"
+  echo "$commit_message"
+  echo "${MAGENTA}------------------------${NC}"
+
+  check_message_format "$commit_message"
+
+  echo "${CYAN}Options: [Enter] Confirm | [r] Regenerate | [Esc] Cancel${NC}"
+  read -k 1 -s key
+  case $key in
+  $'\n') # Enter key
+    if git commit -m "$commit_message"; then
+      echo "\n${GREEN}Committed successfully.${NC}"
+      exit 0
+    else
+      echo "\n${RED}Failed to commit. Please check your Git configuration.${NC}"
+      exit 1
+    fi
+    ;;
+  $'\e') # Esc key
+    echo "\n${YELLOW}Cancelled.${NC}"
+    exit 0
+    ;;
+  r | R)
+    echo "\n${BLUE}Regenerating...${NC}"
+    commit_message=$(generate_commit_message "$staged_changes")
+    ;;
+  *)
+    echo "\n${YELLOW}Invalid option. Please try again.${NC}"
+    ;;
+  esac
+done

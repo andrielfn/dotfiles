@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Function to print usage
+print_usage() {
+    echo "Usage: $0 [-s]"
+    echo "  -s    Save keys and fingerprint to files"
+}
+
+# Default behavior: don't save to files
+SAVE_TO_FILES=false
+
+# Parse command line options
+while getopts ":s" opt; do
+    case ${opt} in
+        s )
+            SAVE_TO_FILES=true
+            ;;
+        \? )
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Set file names
+PRIVATE_KEY="private_key.pem"
+PUBLIC_KEY="public_key.pem"
+FINGERPRINT_FILE="fingerprint.txt"
+
+# Generate private key
+PRIVATE_KEY_CONTENT=$(openssl genrsa 2>/dev/null)
+
+# Generate public key from private key
+PUBLIC_KEY_CONTENT=$(echo "$PRIVATE_KEY_CONTENT" | openssl rsa -pubout 2>/dev/null)
+
+# Convert public key to SSH format and generate fingerprint
+FINGERPRINT=$(echo "$PUBLIC_KEY_CONTENT" | ssh-keygen -i -mPKCS8 -f /dev/stdin | ssh-keygen -lf /dev/stdin -E sha256 | awk '{print $2}')
+
+# Save to files if option is set
+if $SAVE_TO_FILES; then
+    echo "$PRIVATE_KEY_CONTENT" > "$PRIVATE_KEY"
+    chmod 600 "$PRIVATE_KEY"
+    echo "$PUBLIC_KEY_CONTENT" > "$PUBLIC_KEY"
+    echo "$FINGERPRINT" > "$FINGERPRINT_FILE"
+    echo "Private key saved to: $PRIVATE_KEY"
+    echo "Public key saved to: $PUBLIC_KEY"
+    echo "Fingerprint saved to: $FINGERPRINT_FILE"
+else
+    echo "Keys and fingerprint generated but not saved to files."
+fi
+
+# Display results
+echo "Private key:"
+echo "$PRIVATE_KEY_CONTENT"
+echo
+echo "Public key:"
+echo "$PUBLIC_KEY_CONTENT"
+echo
+echo "Fingerprint: $FINGERPRINT"
+
+echo "Process completed."

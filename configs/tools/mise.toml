@@ -1,0 +1,24 @@
+# Mise configuration for development tools
+# This file defines global tool versions
+
+[tools]
+# Add tools as needed manually
+# Example:
+# erlang = "latest"
+# elixir = "latest"
+
+[env]
+# Elixir/Erlang specific environment variables
+ERL_AFLAGS = "-kernel shell_history enabled"
+ELIXIR_EDITOR = "zed +__LINE__ __FILE__"
+
+# IEx configuration
+IEX_WITH_WERL = "false"
+
+[settings]
+# Automatically install missing tools
+auto_install = true
+# Use legacy version files (.node-version, .ruby-version, etc.)
+legacy_version_file = true
+# Always keep downloads
+always_keep_download = false
