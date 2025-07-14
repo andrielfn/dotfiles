@@ -36,13 +36,6 @@ setup_mise_config() {
     print_success "mise configuration linked"
   fi
 
-  # Create local .tool-versions file for the dotfiles directory
-  cat >"$dotfiles_dir/.tool-versions" <<EOF
-# Development tools for dotfiles project
-nodejs lts
-python latest
-EOF
-
   print_success "mise configuration complete"
 }
 

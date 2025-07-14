@@ -7,7 +7,7 @@ Modern dotfiles setup with environment-specific configurations and automated ins
 1. Clone the repository:
 
    ```bash
-   git clone <your-repo-url> ~/.dotfiles
+   git clone https://github.com/andrielfn/dotfiles ~/.dotfiles
    cd ~/.dotfiles
    ```
 

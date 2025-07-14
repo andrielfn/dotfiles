@@ -78,6 +78,12 @@ setup_starship() {
 
   if ! command -v starship &>/dev/null; then
     print_warning "Starship not installed. Installing via Homebrew..."
+    # Ensure brew is in PATH
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
     brew install starship
   fi
 
@@ -94,6 +100,12 @@ setup_zoxide() {
 
   if ! command -v zoxide &>/dev/null; then
     print_warning "zoxide not installed. Installing via Homebrew..."
+    # Ensure brew is in PATH
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
     brew install zoxide
   fi
 
@@ -105,6 +117,12 @@ setup_fzf() {
 
   if ! command -v fzf &>/dev/null; then
     print_warning "FZF not installed. Installing via Homebrew..."
+    # Ensure brew is in PATH
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
     brew install fzf
   fi
 
@@ -126,7 +144,8 @@ create_environment_indicator() {
 #!/usr/bin/env bash
 # Script to set environment indicator for prompt
 
-if [[ "$PWD" == *"/Work/"* ]] || [[ "$PWD" == *"/work/"* ]]; then
+# Check for work directories in home
+if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
     export DOTFILES_ENV="WORK"
 else
     export DOTFILES_ENV="PERSONAL"

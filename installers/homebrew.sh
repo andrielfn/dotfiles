@@ -7,7 +7,8 @@ source "$(dirname "$0")/../scripts/utils.sh"
 
 # Environment detection
 detect_environment() {
-  if [[ "$PWD" == *"/Work/"* ]] || [[ "$PWD" == *"/work/"* ]]; then
+  # Check for work-specific directories in home
+  if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
     echo "work"
   else
     echo "personal"

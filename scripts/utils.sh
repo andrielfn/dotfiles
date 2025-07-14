@@ -21,7 +21,7 @@ readonly NC='\033[0m' # No Color
 print_in_color() {
   local color="$1"
   shift
-  printf "${color}%s${NC}" "$@"
+  printf "${color}%b${NC}" "$@"
 }
 
 print_in_red() {
@@ -164,16 +164,10 @@ backup_file() {
 # =============================================================================
 
 detect_environment() {
-  local current_dir="$PWD"
-  local home_dir="$HOME"
-
-  # Check if we're in a work directory
-  if [[ "$current_dir" == *"/Work/"* ]] || [[ "$current_dir" == *"/work/"* ]]; then
+  # Check for work-specific directories in home
+  if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
     echo "work"
-  elif [[ "$current_dir" == *"/Code/"* ]] || [[ "$current_dir" == *"/code/"* ]]; then
-    echo "personal"
   else
-    # Default to personal
     echo "personal"
   fi
 }
