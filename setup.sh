@@ -176,11 +176,25 @@ setup_git_configuration() {
   # Link shared git configuration
   create_symlink "$DOTFILES_DIR/env/shared/.gitconfig" "$HOME/.gitconfig"
 
-  # Setup environment-specific git configs
-  local env=$(detect_environment)
+  # Always link personal git config (used for ~/Code/ directory)
+  if [[ -f "$DOTFILES_DIR/env/personal/.gitconfig-personal" ]]; then
+    create_symlink "$DOTFILES_DIR/env/personal/.gitconfig-personal" "$HOME/.gitconfig-personal"
+    print_success "Personal git config linked"
+  else
+    print_warning "Personal git config not found at $DOTFILES_DIR/env/personal/.gitconfig-personal"
+  fi
 
-  if [[ -f "$DOTFILES_DIR/env/$env/.gitconfig-$env" ]]; then
-    create_symlink "$DOTFILES_DIR/env/$env/.gitconfig-$env" "$HOME/.gitconfig-$env"
+  # Only link work git config if we're on a work machine (used for ~/Work/ directory)
+  local env=$(detect_environment)
+  if [[ "$env" == "work" ]]; then
+    if [[ -f "$DOTFILES_DIR/env/work/.gitconfig-work" ]]; then
+      create_symlink "$DOTFILES_DIR/env/work/.gitconfig-work" "$HOME/.gitconfig-work"
+      print_success "Work git config linked"
+    else
+      print_warning "Work git config not found at $DOTFILES_DIR/env/work/.gitconfig-work"
+    fi
+  else
+    print_info "Skipping work git config (not on a work machine)"
   fi
 
   # Note: gitignore and gitmessage are now handled by the centralized config system
