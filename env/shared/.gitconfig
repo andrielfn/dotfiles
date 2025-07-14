@@ -124,7 +124,7 @@ prv = "!gh pr view"
 # Fun commits (use with caution!)
 lol = "!git add -A; git commit -am \"$(echo $(curl -s http://whatthecommit.com/index.txt))\""
 
-[includeIf "gitdir:~/Code/"]
+[includeIf "gitdir:~/"]
 path = ~/.gitconfig-personal
 
 [includeIf "gitdir:~/Work/"]
