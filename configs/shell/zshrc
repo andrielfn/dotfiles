@@ -131,3 +131,5 @@ if [[ -o interactive ]]; then
     echo "Type 'sysinfo' for system information"
     echo ""
 fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
