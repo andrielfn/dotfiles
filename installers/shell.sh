@@ -4,6 +4,7 @@
 # This script sets up ZSH with modern completions and configurations
 
 source "$(dirname "$0")/../scripts/utils.sh"
+source "$(dirname "$0")/../scripts/config.sh"
 
 # Helper function to ensure brew is in PATH
 ensure_brew_in_path() {
@@ -70,37 +71,22 @@ setup_oh_my_zsh() {
   fi
 }
 
-setup_shell_configs() {
-  local dotfiles_dir="$1"
-
-  print_in_yellow "=> Setting up shell configurations..."
-
-  # Backup existing configurations
-  for config in ~/.zshrc ~/.zprofile ~/.zshenv; do
-    if [[ -f "$config" && ! -L "$config" ]]; then
-      mv "$config" "$config.backup.$(date +%Y%m%d-%H%M%S)"
-      print_warning "Backed up existing $config"
-    fi
-  done
-
-  # Link new configurations
-  ln -sf "$dotfiles_dir/configs/shell/zshrc" "$HOME/.zshrc"
-  print_success "Linked .zshrc"
+setup_shell_directories() {
+  print_in_yellow "=> Setting up shell directories..."
 
   # Create ZSH cache directory
   mkdir -p "$HOME/.zsh/cache"
   print_success "Created ZSH cache directory"
 
-  # Create .hushlogin to suppress welcome messages and last login info
-  touch "$HOME/.hushlogin"
-  print_success "Created .hushlogin to suppress login messages"
+  # Create completions directory
+  mkdir -p "$HOME/.zsh/completions"
+  print_success "Created ZSH completions directory"
+
+  print_success "Shell directories setup complete"
 }
 
 setup_completions() {
   print_in_yellow "=> Setting up shell completions..."
-
-  # Create completions directory
-  mkdir -p "$HOME/.zsh/completions"
 
   # Download git completion and prompt scripts
   local git_completion_url="https://raw.githubusercontent.com/git/git/master/contrib/completion"
@@ -162,8 +148,11 @@ main() {
   # Setup Oh My Zsh
   setup_oh_my_zsh
 
-  # Setup shell configurations
-  setup_shell_configs "$dotfiles_dir"
+  # Setup shell configurations using mapping system
+  setup_configurations "$dotfiles_dir"
+
+  # Create additional shell directories
+  setup_shell_directories
 
   # Setup completions
   setup_completions

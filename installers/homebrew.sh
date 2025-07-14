@@ -5,15 +5,7 @@
 
 source "$(dirname "$0")/../scripts/utils.sh"
 
-# Environment detection
-detect_environment() {
-  # Check for work-specific directories in home
-  if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
-    echo "work"
-  else
-    echo "personal"
-  fi
-}
+# Environment detection function is now in utils.sh
 
 install_homebrew() {
   print_in_yellow "=> Installing Homebrew..."
