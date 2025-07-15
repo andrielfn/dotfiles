@@ -30,28 +30,24 @@
     "edit_prediction_provider": "zed"
   },
   "telemetry": {
-    "metrics": true
+    "metrics": false
   },
   "agent": {
     "default_model": {
       "provider": "zed.dev",
       "model": "claude-3-5-sonnet-latest"
-    },
+    }
   },
   "wrap_guides": [120],
   "ui_font_size": 17,
   "theme": "One Light",
   "buffer_font_size": 17,
-  // "base_keymap": "SublimeText",
-
   "tab_size": 2,
-
   "buffer_font_features": {
     "calt": false
   },
-  "buffer_font_ligatures": true,
-  "buffer_font_family": "Cascadia Code",
-  "buffer_font_weight": 300,
+  "buffer_font_family": "Cascadia Code NF",
+  "buffer_font_weight": 200,
   "buffer_line_height": {
     "custom": 1.8
   },

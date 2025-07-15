@@ -117,3 +117,12 @@ disabled = true
 
 [vagrant]
 disabled = true
+
+[python]
+disabled = true
+
+[aws]
+disabled = true
+
+[nix_shell]
+disabled = true

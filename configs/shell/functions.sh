@@ -144,6 +144,14 @@ init_shell() {
     eval "$(mise activate zsh)"
   fi
 
+  if command -v direnv &>/dev/null; then
+    eval "$(direnv hook zsh)"
+  fi
+
+  if command -v op &>/dev/null; then
+    eval "$(op signin)"
+  fi
+
   # Set up FZF key bindings
   if command -v fzf &>/dev/null; then
     source <(fzf --zsh)
