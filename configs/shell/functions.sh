@@ -37,32 +37,6 @@ fzf-git-checkout() {
   fi
 }
 
-# Quick git commit with conventional commits
-gcom() {
-  if [[ -z "$1" ]]; then
-    echo "Usage: gcom <type> <message>"
-    echo "Types: feat, fix, docs, style, refactor, test, chore"
-    return 1
-  fi
-
-  local type="$1"
-  shift
-  local message="$*"
-
-  git add . && git commit -m "$type: $message"
-}
-
-# Create new branch and push to remote
-gnb() {
-  if [[ -z "$1" ]]; then
-    echo "Usage: gnb <branch-name>"
-    return 1
-  fi
-
-  git checkout -b "$1"
-  git push -u origin "$1"
-}
-
 # =============================================================================
 # PRODUCTIVITY FUNCTIONS
 # =============================================================================
