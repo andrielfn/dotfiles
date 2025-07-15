@@ -64,6 +64,13 @@ export _ZO_ECHO=1
 export DFT_DISPLAY=inline
 export DFT_TAB_WIDTH=2
 
+# Setup PNPM
+export PNPM_HOME="/Users/andriel/Library/pnpm"
+case ":$PATH:" in
+*":$PNPM_HOME:"*) ;;
+*) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
 # Tab title function
 precmd() {
   echo -ne "\e]1;${PWD##*/}\a"
