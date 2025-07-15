@@ -136,10 +136,6 @@ mkcd() {
 }
 
 # =============================================================================
-# UTILITY FUNCTIONS
-# =============================================================================
-
-# =============================================================================
 # STARTUP FUNCTIONS
 # =============================================================================
 
@@ -147,6 +143,19 @@ mkcd() {
 init_shell() {
   # Load environment-specific configuration
   load_env_config
+
+  # Initialize Homebrew environment if available
+  if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -f "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+
+  # Initialize Oh My Zsh if available
+  if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    export ZSH="$HOME/.oh-my-zsh"
+    source "$ZSH/oh-my-zsh.sh"
+  fi
 
   # Initialize tools if available
   if command -v starship &>/dev/null; then

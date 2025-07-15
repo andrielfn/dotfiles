@@ -19,14 +19,12 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.bin:$PATH"
 export PATH="/usr/local/sbin:$PATH"
 export PATH="./bin:$PATH"
-export PATH="/opt/homebrew/bin:$PATH"
-export PATH="/opt/homebrew/sbin:$PATH"
 
 # Mise configuration
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 # PostgreSQL configuration
-export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+# export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 
 # Language-specific configuration
 export ERL_AFLAGS="-kernel shell_history enabled"
