@@ -5,15 +5,13 @@
 # Directory shortcuts
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias work="cd ~/Work"
-alias code="cd ~/Code"
-alias dotfiles="cd ~/Code/dotfiles"
+alias dotfiles="cd ~/.dotfiles"
 
 # Modern replacements for common commands
-alias ls="eza --icons"
-alias ll="eza -lhbgH --git --icons"
-alias la="eza -lhbgHa --git --icons"
-alias lt="eza --tree --level=2 --icons"
+alias ls="eza"
+alias ll="eza -lhbgH --git"
+alias la="eza -lhbgHa --git"
+alias lt="eza --tree --level=2"
 alias cat="bat"
 alias grep="rg"
 alias find="fd"
