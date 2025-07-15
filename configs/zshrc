@@ -11,11 +11,13 @@ export DOTFILES_DIR="$HOME/.dotfiles"
 
 # Oh My Zsh theme
 ZSH_THEME="robbyrussell"
+ZOXIDE_CMD_OVERRIDE="cd"
 
 # Oh My Zsh plugins
 plugins=(
     git
     command-not-found
+    zoxide
 )
 
 # =============================================================================
@@ -52,7 +54,7 @@ unsetopt MENU_COMPLETE
 unsetopt FLOWCONTROL
 
 # Correction settings
-setopt CORRECT
+unsetopt CORRECT
 unsetopt CORRECT_ALL
 
 # Job control

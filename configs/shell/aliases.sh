@@ -2,13 +2,6 @@
 # SYSTEM ALIASES
 # =============================================================================
 
-# Shell navigation
-alias ..="cd .."
-alias ...="cd ../.."
-alias ....="cd ../../.."
-alias ~="cd ~"
-alias -- -="cd -"
-
 # Directory shortcuts
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
