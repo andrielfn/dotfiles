@@ -8,10 +8,10 @@ alias dt="cd ~/Desktop"
 alias dotfiles="cd ~/.dotfiles"
 
 # Modern replacements for common commands
-alias ls="eza"
-alias ll="eza -lhbgH --git"
-alias la="eza -lhbgHa --git"
-alias lt="eza --tree --level=2"
+alias ls="eza --icons"
+alias ll="eza -lhbgH --git --icons"
+alias la="eza -lhbgHa --git --icons"
+alias lt="eza --tree --level=2 --icons"
 alias cat="bat"
 alias grep="rg"
 alias find="fd"
@@ -144,11 +144,6 @@ alias genkey="openssl rand -hex 32 | pbcopy && echo 'Random key copied to clipbo
 # =============================================================================
 # PRODUCTIVITY ALIASES
 # =============================================================================
-
-# Quick edits
-alias zshrc="$EDITOR ~/.zshrc"
-alias zshreload="source ~/.zshrc"
-alias hosts="sudo $EDITOR /etc/hosts"
 
 # FZF enhanced commands
 alias fzf-files='fd --type f --hidden --follow --exclude .git | fzf --preview "bat --color=always --style=header,grid --line-range :300 {}"'

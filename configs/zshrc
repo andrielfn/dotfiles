@@ -18,6 +18,8 @@ plugins=(
     git
     command-not-found
     zoxide
+    zsh-autosuggestions
+    zsh-syntax-highlighting
 )
 
 # =============================================================================
@@ -69,16 +71,6 @@ unsetopt CHECK_JOBS
 # LOAD CONFIGURATIONS
 # =============================================================================
 
-# Load exports and environment variables
-if [[ -f "$DOTFILES_DIR/configs/shell/exports.sh" ]]; then
-    source "$DOTFILES_DIR/configs/shell/exports.sh"
-fi
-
-# Load aliases
-if [[ -f "$DOTFILES_DIR/configs/shell/aliases.sh" ]]; then
-    source "$DOTFILES_DIR/configs/shell/aliases.sh"
-fi
-
 # Load functions
 if [[ -f "$DOTFILES_DIR/configs/shell/functions.sh" ]]; then
     source "$DOTFILES_DIR/configs/shell/functions.sh"
@@ -88,8 +80,17 @@ fi
 # INITIALIZE TOOLS
 # =============================================================================
 
-# Initialize shell environment
 init_shell
+
+# Load aliases
+if [[ -f "$DOTFILES_DIR/configs/shell/aliases.sh" ]]; then
+    source "$DOTFILES_DIR/configs/shell/aliases.sh"
+fi
+
+# Load exports and environment variables
+if [[ -f "$DOTFILES_DIR/configs/shell/exports.sh" ]]; then
+    source "$DOTFILES_DIR/configs/shell/exports.sh"
+fi
 
 # =============================================================================
 # COMPLETIONS
