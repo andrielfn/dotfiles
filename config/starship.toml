@@ -81,9 +81,12 @@ error_symbol = '[✗](fg:red)'
 
 [aws]
 symbol = "  "
+disabled = true
+
 
 [buf]
 symbol = " "
+disabled = true
 
 [c]
 symbol = " "
@@ -108,6 +111,7 @@ symbol = " "
 
 [elixir]
 symbol = " "
+disabled = true
 
 [elm]
 symbol = " "
@@ -153,6 +157,7 @@ symbol = " "
 
 [julia]
 symbol = " "
+disabled = true
 
 [kotlin]
 symbol = " "
@@ -171,6 +176,7 @@ symbol = "󰆥 "
 
 [nix_shell]
 symbol = " "
+disabled = true
 
 [nodejs]
 symbol = " "
@@ -240,6 +246,7 @@ symbol = " "
 
 [python]
 symbol = " "
+disabled = true
 
 [rlang]
 symbol = "󰟔 "

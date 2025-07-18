@@ -242,8 +242,7 @@
             "color": "#85888c"
           },
           "punctuation.list_marker": {
-            "color": "#85888c",
-            "font_weight": 700
+            "color": "#85888c"
           },
           "punctuation.special": {
             "color": "#3e999f"
@@ -270,8 +269,8 @@
             "color": "#718c00"
           },
           "title": {
-            "color": "#c82829",
-            "font_weight": 700
+            "color": "#8e908c",
+            "font_weight": 400
           },
           "type": {
             "color": "#c99e00"

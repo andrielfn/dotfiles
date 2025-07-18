@@ -1,4 +1,10 @@
 [user]
   name = Andriel Nuernberg
-  email = andriel.nuernberg@company.com
-  signingkey = YOUR_WORK_GPG_KEY_HERE
+  email = andriel.nuernberg@calmwave.ai
+  signingkey = A91381D338C9A8FF
+
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
