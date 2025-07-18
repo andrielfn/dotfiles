@@ -30,13 +30,27 @@
       "cmd-shift-d": "editor::DuplicateLineDown",
       "cmd-l cmd-p": "workspace::CopyRelativePath",
       "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
-      "alt-.": ["workspace::SendKeystrokes", "|>"]
+      "alt-.": ["workspace::SendKeystrokes", "|>"],
+      "cmd-l": "go_to_line::Toggle"
     }
   },
   {
     "context": "ProjectPanel && not_editing",
     "bindings": {
       "c": "project_panel::CollapseAllEntries"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "cmd-shift-g": "git_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "!ContextEditor > Editor && mode == full",
+    "use_key_equivalents": true,
+    "bindings": {
+      "cmd-i": "assistant::InlineAssist"
     }
   }
 ]
