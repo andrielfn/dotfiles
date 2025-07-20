@@ -1,1 +1,15 @@
+#!/usr/bin/env bash
+# =============================================================================
+# PERSONAL ENVIRONMENT CONFIGURATION
+# =============================================================================
+# Environment variables specific to personal development
 
+# Personal project paths
+export PERSONAL_PROJECTS_DIR="$HOME/Code"
+
+# Personal development settings
+export DEVELOPMENT_MODE="true"
+export DEBUG_MODE="true"
+
+# Personal tool configurations
+# Add your personal-specific environment variables here

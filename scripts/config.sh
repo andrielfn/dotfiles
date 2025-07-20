@@ -5,7 +5,14 @@
 # =============================================================================
 # This file handles the mapping-based configuration system for dotfiles
 
-source "$(dirname "$0")/utils.sh"
+# Source utils.sh - handle both direct and sourced execution
+if [[ -f "$(dirname "$0")/utils.sh" ]]; then
+    source "$(dirname "$0")/utils.sh"
+elif [[ -f "./utils.sh" ]]; then
+    source "./utils.sh"
+elif [[ -f "$SCRIPTS_DIR/utils.sh" ]]; then
+    source "$SCRIPTS_DIR/utils.sh"
+fi
 
 # =============================================================================
 # MAPPING-BASED CONFIGURATION MANAGEMENT
@@ -13,14 +20,14 @@ source "$(dirname "$0")/utils.sh"
 
 setup_configurations() {
   local dotfiles_dir="$1"
-  local mapping_file="$dotfiles_dir/configs/mapping"
+  local mapping_file="$dotfiles_dir/config/mapping.cfg"
 
   if [[ ! -f "$mapping_file" ]]; then
     print_warning "No mapping file found at $mapping_file"
     return 0
   fi
 
-  print_header "Setting up configurations"
+  echo "Linking configuration files..."
 
   # Create necessary directories
   mkdir -p "$HOME/.config"
@@ -60,8 +67,8 @@ setup_file_mapping() {
   local source_path="$2"
   local dest_path="$3"
 
-  # Get full source path
-  local full_source="$dotfiles_dir/configs/$source_path"
+  # Get full source path (all mapped files are in config/)
+  local full_source="$dotfiles_dir/config/$source_path"
 
   # Check if source exists
   if [[ ! -e "$full_source" ]]; then
@@ -84,8 +91,8 @@ setup_folder_mapping() {
   local source_path="$2"
   local dest_path="$3"
 
-  # Remove trailing slash from source_path for directory operations
-  local source_dir="$dotfiles_dir/configs/${source_path%/}"
+  # Remove trailing slash from source_path for directory operations (all mapped dirs are in config/)
+  local source_dir="$dotfiles_dir/config/${source_path%/}"
 
   # Check if source directory exists
   if [[ ! -d "$source_dir" ]]; then
@@ -116,7 +123,7 @@ setup_config_link() {
   local dest_path="$2"
   local display_name="$3"
 
-  print_step "Setting up $display_name configuration..."
+  echo "• Linking $display_name"
 
   # Backup existing config if it exists and is not a symlink
   if [[ -e "$dest_path" && ! -L "$dest_path" ]]; then

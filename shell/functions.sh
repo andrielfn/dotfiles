@@ -2,32 +2,6 @@
 # DEVELOPMENT FUNCTIONS
 # =============================================================================
 
-# Environment detection
-detect_environment() {
-  # Check for work-specific directories in home
-  if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
-    echo "work"
-  else
-    echo "personal"
-  fi
-}
-
-# Load environment-specific configuration
-load_env_config() {
-  local env=$(detect_environment)
-  local dotfiles_path="$HOME/.dotfiles"
-
-  # Load public environment variables
-  if [[ -f "$dotfiles_path/env/$env/env-$env" ]]; then
-    source "$dotfiles_path/env/$env/env-$env"
-  fi
-
-  # Load secret environment variables (not tracked by git)
-  if [[ -f "$dotfiles_path/env/$env/env-secrets" ]]; then
-    source "$dotfiles_path/env/$env/env-secrets"
-  fi
-}
-
 # Git functions
 fzf-git-checkout() {
   local branch
@@ -107,53 +81,4 @@ mkcd() {
   fi
 
   mkdir -p "$1" && cd "$1"
-}
-
-# =============================================================================
-# STARTUP FUNCTIONS
-# =============================================================================
-
-# Initialize shell environment
-init_shell() {
-  # Load environment-specific configuration
-  load_env_config
-
-  # Initialize Homebrew environment if available
-  if [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  elif [[ -f "/usr/local/bin/brew" ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-  fi
-
-  # Initialize Oh My Zsh if available
-  if [[ -d "$HOME/.oh-my-zsh" ]]; then
-    export ZSH="$HOME/.oh-my-zsh"
-    source "$ZSH/oh-my-zsh.sh"
-  fi
-
-  # Initialize tools if available
-  if command -v starship &>/dev/null; then
-    eval "$(starship init zsh)"
-  fi
-
-  if command -v zoxide &>/dev/null; then
-    eval "$(zoxide init zsh)"
-  fi
-
-  if command -v mise &>/dev/null; then
-    eval "$(mise activate zsh)"
-  fi
-
-  if command -v direnv &>/dev/null; then
-    eval "$(direnv hook zsh)"
-  fi
-
-  if command -v op &>/dev/null; then
-    eval "$(op signin)"
-  fi
-
-  # Set up FZF key bindings
-  if command -v fzf &>/dev/null; then
-    source <(fzf --zsh)
-  fi
 }

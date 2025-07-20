@@ -5,7 +5,6 @@
 # Directory shortcuts
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias dotfiles="cd ~/.dotfiles"
 
 # Modern replacements for common commands
 alias ls="eza --icons"
@@ -162,11 +161,6 @@ alias dcr="docker-compose run --rm"
 # =============================================================================
 # FUNCTIONS AS ALIASES
 # =============================================================================
-
-# Quick directory creation and navigation
-mkcd() {
-  mkdir -p "$1" && cd "$1"
-}
 
 # Extract any archive
 extract() {

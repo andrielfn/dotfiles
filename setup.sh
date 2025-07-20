@@ -17,8 +17,127 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_DIR="$SCRIPT_DIR"
 
+# Default configuration
+MACHINE_TYPE="personal"
+WORK_DIR="Work"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --machine-type=*)
+      MACHINE_TYPE="${1#*=}"
+      shift
+      ;;
+    --work-dir=*)
+      WORK_DIR="${1#*=}"
+      shift
+      ;;
+    --help|-h)
+      show_usage
+      exit 0
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      show_usage
+      exit 1
+      ;;
+  esac
+done
+
 # Source utilities
 source "$SCRIPT_DIR/scripts/utils.sh"
+
+# =============================================================================
+# USAGE AND HELP
+# =============================================================================
+
+show_usage() {
+  cat << EOF
+Usage: $0 [OPTIONS]
+
+Setup dotfiles with machine-specific configuration.
+
+OPTIONS:
+  --machine-type=TYPE     Set machine type (personal|work) [default: personal]
+  --work-dir=DIR          Set work directory name [default: Work]
+  --help, -h              Show this help message
+
+EXAMPLES:
+  $0                                    # Personal machine setup
+  $0 --machine-type=work                # Work machine with ~/Work directory
+  $0 --machine-type=work --work-dir=Company  # Work machine with ~/Company directory
+
+MACHINE TYPES:
+  personal    Default setup with ~/Code directory for projects
+  work        Work setup with work directory for environment detection
+EOF
+}
+
+# =============================================================================
+# MACHINE SETUP FUNCTIONS
+# =============================================================================
+
+setup_machine_environment() {
+  print_header "Setting up $MACHINE_TYPE machine environment"
+  
+  case "$MACHINE_TYPE" in
+    personal)
+      setup_personal_machine
+      ;;
+    work)
+      setup_work_machine
+      ;;
+    *)
+      print_error "Unknown machine type: $MACHINE_TYPE"
+      print_info "Valid types: personal, work"
+      exit 1
+      ;;
+  esac
+}
+
+setup_personal_machine() {
+  print_step "Configuring personal machine"
+  
+  # Create Code directory for personal projects
+  mkdir -p "$HOME/Code"
+  print_success "Created ~/Code directory for personal projects"
+  
+  # Set personal environment as default
+  print_success "Personal machine configuration complete"
+}
+
+setup_work_machine() {
+  print_step "Configuring work machine"
+  
+  # Create work directory for work projects
+  mkdir -p "$HOME/$WORK_DIR"
+  print_success "Created ~/$WORK_DIR directory for work projects"
+  
+  # Update environment detection function to use custom work directory
+  update_environment_detection
+  
+  print_success "Work machine configuration complete"
+}
+
+update_environment_detection() {
+  if [[ "$WORK_DIR" != "Work" ]]; then
+    print_step "Updating environment detection for custom work directory: $WORK_DIR"
+    
+    # Update the detect_environment function in init.sh
+    local init_file="$DOTFILES_DIR/shell/init.sh"
+    
+    # Create a backup
+    cp "$init_file" "$init_file.backup"
+    
+    # Update the function to check for custom work directory
+    sed -i.tmp "s/\[\[ -d \"\$HOME\/Work\" \]\] || \[\[ -d \"\$HOME\/work\" \]\]/[[ -d \"\$HOME\/$WORK_DIR\" ]] || [[ -d \"\$HOME\/work\" ]] || [[ -d \"\$HOME\/Work\" ]]/" "$init_file"
+    
+    # Remove temp file
+    rm "$init_file.tmp"
+    
+    print_success "Updated environment detection for ~/$WORK_DIR"
+  fi
+}
 
 # =============================================================================
 # MAIN FUNCTIONS
@@ -55,29 +174,14 @@ check_prerequisites() {
 show_installation_menu() {
   print_header "Installation Options"
 
-  cat <<'EOF'
-Choose your installation type:
-
-1) 🚀 Full Setup (Recommended)
-   • All components with environment detection
-   • Homebrew + packages + development tools
-   • Shell configuration + macOS optimization
-
-2) 📦 Package Management Only
-   • Homebrew + environment-specific packages
-   • Mise + development tools
-
-3) 🐚 Shell Configuration Only
-   • Enhanced ZSH + modern tools
-   • Aliases, functions, and completions
-
-4) 🖥️  macOS Configuration Only
-   • System preferences optimization
-   • Developer-friendly settings
-
-5) ❌ Exit
-
-EOF
+  echo "Choose your installation type:"
+  echo ""
+  echo "1) Full Setup (Recommended)"
+  echo "2) Package Management Only"
+  echo "3) Shell Configuration Only"
+  echo "4) macOS Configuration Only"
+  echo "5) Exit"
+  echo ""
 
   print_question "Please select an option (1-5): "
   read -r -n 1 choice
@@ -98,6 +202,9 @@ EOF
 
 install_full_setup() {
   print_header "🚀 Full Setup Installation"
+
+  # Setup machine environment first
+  setup_machine_environment
 
   # Create necessary directories
   mkdir -p "$HOME/.local/bin"
@@ -242,55 +349,14 @@ create_useful_directories() {
 }
 
 show_completion_message() {
-  print_header "🎉 Installation Complete!"
-
-  cat <<'EOF'
-Your development environment is now set up! Here's what you can do next:
-
-🚀 Get Started:
-   • Open a new terminal window to activate the new configuration
-   • Run 'sysinfo' to see your system information
-   • Try 'project' to quickly switch between projects
-
-🔧 Environment Detection:
-   • Work in ~/Work/ for work environment
-   • Work in ~/Code/ for personal environment
-   • Environment automatically detected and configured
-
-📖 Available Commands:
-   • 'new-phoenix <name>' - Create new Phoenix LiveView project
-   • 'new-elixir <name>' - Create new Elixir project
-   • 'gcom feat "message"' - Conventional commits
-   • 'port-kill <port>' - Kill process on port
-   • 'weather <city>' - Check weather
-   • 'note <name>' - Quick notes
-
-🎨 Enhanced Tools:
-   • Use 'fzf-files' for fuzzy file search
-   • Use 'fzf-git' for interactive git log
-   • Use 'recent' for recent directories
-   • Use 'cleanup' for system cleanup
-
-⚙️  Configuration:
-   • Edit ~/.zshrc.local for personal customizations
-   • Git configs automatically switch based on directory
-   • Starship prompt shows current environment
-
-📚 Documentation:
-   • All aliases: run 'alias' command
-   • All functions: check ~/.dotfiles/configs/shell/functions.sh
-   • Git aliases: run 'git config --get-regexp alias'
-
-EOF
-
-  print_info "Installation log saved to: $HOME/.dotfiles_install.log"
-  print_info "Dotfiles location: $DOTFILES_DIR"
-
-  ask_for_confirmation "Would you like to restart your terminal now?"
-  if answer_is_yes; then
-    print_info "Please restart your terminal to activate all changes"
-    exec "$SHELL" -l
-  fi
+  print_success "Installation Complete!"
+  echo ""
+  echo "Next steps:"
+  echo "  • Run 'dotfiles help' for management commands"
+  echo "  • Restart your terminal or run 'exec \$SHELL -l'"
+  echo "  • Edit ~/.zshrc.local for personal customizations"
+  echo ""
+  print_info "Dotfiles: $DOTFILES_DIR"
 }
 
 cleanup_on_exit() {

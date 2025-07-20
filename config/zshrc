@@ -71,26 +71,11 @@ unsetopt CHECK_JOBS
 # LOAD CONFIGURATIONS
 # =============================================================================
 
-# Load functions
-if [[ -f "$DOTFILES_DIR/configs/shell/functions.sh" ]]; then
-    source "$DOTFILES_DIR/configs/shell/functions.sh"
-fi
-
-# =============================================================================
-# INITIALIZE TOOLS
-# =============================================================================
-
-init_shell
-
-# Load aliases
-if [[ -f "$DOTFILES_DIR/configs/shell/aliases.sh" ]]; then
-    source "$DOTFILES_DIR/configs/shell/aliases.sh"
-fi
-
-# Load exports and environment variables
-if [[ -f "$DOTFILES_DIR/configs/shell/exports.sh" ]]; then
-    source "$DOTFILES_DIR/configs/shell/exports.sh"
-fi
+# Load configurations in proper order
+source "$DOTFILES_DIR/shell/exports.sh"     # Environment variables first
+source "$DOTFILES_DIR/shell/functions.sh"   # Functions
+source "$DOTFILES_DIR/shell/init.sh"        # Initialize tools (oh-my-zsh, etc)
+source "$DOTFILES_DIR/shell/aliases.sh"     # Aliases last
 
 # =============================================================================
 # COMPLETIONS
@@ -111,7 +96,6 @@ zstyle ':completion:*' cache-path ~/.zsh/cache
 
 # Git completion
 zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
-# zstyle ':completion:*:*:git:*' user-commands ${${(M)${(k)commands}:#git-*}/git-/}
 
 # =============================================================================
 # KEY BINDINGS
@@ -132,16 +116,8 @@ bindkey '^[^?' backward-kill-word
 # FINAL SETUP
 # =============================================================================
 
-# Auto-update dotfiles daily
-# if [[ $(date +%j) != $(cat ~/.dotfiles_last_update 2>/dev/null) ]]; then
-#     echo "Checking for dotfiles updates..."
-#     (cd "$DOTFILES_DIR" && git pull origin main > /dev/null 2>&1)
-#     date +%j > ~/.dotfiles_last_update
-# fi
-
 # Load local customizations if they exist
 if [[ -f "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
 fi
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

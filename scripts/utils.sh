@@ -5,14 +5,16 @@
 # =============================================================================
 
 # Color definitions
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly PURPLE='\033[0;35m'
-readonly CYAN='\033[0;36m'
-readonly WHITE='\033[1;37m'
-readonly NC='\033[0m' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'  # Note: Avoid using white on white background
+BOLD='\033[1m'
+RESET='\033[0m'
+NC='\033[0m' # No Color
 
 # =============================================================================
 # PRINT FUNCTIONS
@@ -82,7 +84,7 @@ print_header() {
 
 print_step() {
   echo ""
-  print_in_white "→ $@"
+  print_in_cyan "→ $@"
   echo ""
 }
 

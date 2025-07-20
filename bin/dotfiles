@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+
+# =============================================================================
+# DOTFILES MANAGEMENT COMMAND
+# =============================================================================
+
+set -euo pipefail
+
+DOTFILES_DIR="$HOME/.dotfiles"
+cd "$DOTFILES_DIR"
+
+# Source utilities with absolute paths
+SCRIPTS_DIR="$DOTFILES_DIR/scripts"
+source "$SCRIPTS_DIR/utils.sh"
+
+# Temporarily change to scripts directory for config.sh relative sourcing
+pushd "$SCRIPTS_DIR" > /dev/null
+source "./config.sh"
+popd > /dev/null
+
+# =============================================================================
+# COMMANDS
+# =============================================================================
+
+dotfiles_update() {
+    print_step "Updating dotfiles"
+    
+    # Pull latest changes
+    if git pull origin main; then
+        print_success "Dotfiles updated"
+        
+        # Relink configurations
+        dotfiles_link
+    else
+        print_error "Failed to update dotfiles"
+        return 1
+    fi
+}
+
+dotfiles_link() {
+    print_step "Linking configurations"
+    
+    # Run setup_configurations with dotfiles directory
+    setup_configurations "$DOTFILES_DIR"
+    
+    print_success "Configurations linked"
+}
+
+dotfiles_status() {
+    print_step "Dotfiles Status"
+    
+    # Git status
+    printf "\n${BOLD}Git Status:${RESET}\n"
+    git status --short
+    
+    # Check for broken symlinks
+    printf "\n${BOLD}Checking symlinks:${RESET}\n"
+    local broken_links=0
+    while IFS=: read -r source dest; do
+        # Skip comments and empty lines
+        [[ "$source" =~ ^#.*$ ]] || [[ -z "$source" ]] && continue
+        
+        # Expand tilde in destination
+        dest="${dest/#\~/$HOME}"
+        
+        if [[ -L "$dest" ]]; then
+            if [[ ! -e "$dest" ]]; then
+                print_error "Broken: $dest"
+                ((broken_links++))
+            fi
+        elif [[ ! -e "$dest" ]]; then
+            print_warning "Missing: $dest"
+        fi
+    done < "$DOTFILES_DIR/config/mapping.cfg"
+    
+    if [[ $broken_links -eq 0 ]]; then
+        print_success "All symlinks healthy"
+    fi
+    
+    # Environment info
+    printf "\n${BOLD}Environment:${RESET}\n"
+    if [[ -d "$HOME/Work" ]] || [[ -d "$HOME/work" ]]; then
+        echo "Type: work"
+    else
+        echo "Type: personal"
+    fi
+    echo "Shell: $SHELL"
+    echo "Dotfiles: $DOTFILES_DIR"
+}
+
+dotfiles_doctor() {
+    print_step "Running diagnostics"
+    
+    local issues=0
+    
+    # Check Oh My Zsh
+    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+        print_warning "Oh My Zsh not installed"
+        ((issues++))
+    fi
+    
+    # Check required commands
+    local commands=("git" "zsh" "brew")
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" &>/dev/null; then
+            print_warning "Missing command: $cmd"
+            ((issues++))
+        fi
+    done
+    
+    # Check shell
+    if [[ "$SHELL" != *"zsh"* ]]; then
+        print_warning "Shell is not zsh"
+        ((issues++))
+    fi
+    
+    # Check dotfiles symlink
+    if [[ ! -L "$HOME/.zshrc" ]] || [[ ! -e "$HOME/.zshrc" ]]; then
+        print_warning "zshrc not properly linked"
+        ((issues++))
+    fi
+    
+    if [[ $issues -eq 0 ]]; then
+        print_success "No issues found"
+    else
+        print_error "Found $issues issues"
+    fi
+}
+
+dotfiles_edit() {
+    print_step "Opening dotfiles in ${EDITOR:-vim}"
+    
+    # Use EDITOR if set, otherwise default to vim
+    "${EDITOR:-vim}" "$DOTFILES_DIR"
+}
+
+dotfiles_reload() {
+    print_step "Reloading shell configuration"
+    
+    if [[ -f "$HOME/.zshrc" ]]; then
+        print_success "Restarting shell to reload configuration"
+        exec "$SHELL" -l
+    else
+        print_error "No .zshrc found"
+        return 1
+    fi
+}
+
+dotfiles_clean() {
+    print_step "Cleaning broken symlinks"
+    
+    local cleaned=0
+    while IFS=: read -r source dest; do
+        # Skip comments and empty lines
+        [[ "$source" =~ ^#.*$ ]] || [[ -z "$source" ]] && continue
+        
+        # Expand tilde in destination
+        dest="${dest/#\~/$HOME}"
+        
+        if [[ -L "$dest" ]] && [[ ! -e "$dest" ]]; then
+            rm "$dest"
+            print_success "Removed broken symlink: $dest"
+            ((cleaned++))
+        fi
+    done < "$DOTFILES_DIR/config/mapping.cfg"
+    
+    if [[ $cleaned -eq 0 ]]; then
+        print_success "No broken symlinks found"
+    else
+        print_success "Cleaned $cleaned broken symlink(s)"
+    fi
+}
+
+dotfiles_sync() {
+    print_step "Syncing dotfiles to remote"
+    
+    # Check if there are changes to commit (modified, added, or untracked files)
+    if ! git diff --quiet || ! git diff --cached --quiet || [[ -n $(git ls-files --others --exclude-standard) ]]; then
+        print_question "Commit message (or press Enter for default): "
+        read -r commit_msg
+        
+        if [[ -z "$commit_msg" ]]; then
+            commit_msg="Update dotfiles configuration"
+        fi
+        
+        git add .
+        git commit -m "$commit_msg"
+        print_success "Changes committed"
+    else
+        print_success "No changes to commit"
+    fi
+    
+    # Push to remote
+    if git push; then
+        print_success "Changes pushed to remote"
+    else
+        print_error "Failed to push changes"
+        return 1
+    fi
+}
+
+dotfiles_help() {
+    printf "${BOLD}dotfiles - Dotfiles management${RESET}\n"
+    echo ""
+    printf "${BOLD}USAGE:${RESET}\n"
+    echo "    dotfiles <command>"
+    echo ""
+    printf "${BOLD}COMMANDS:${RESET}\n"
+    echo "    edit      Open dotfiles in \$EDITOR"
+    echo "    update    Pull latest changes and relink configurations"
+    echo "    link      Link all configurations from mapping file"
+    echo "    status    Show current dotfiles status"
+    echo "    doctor    Check for common issues"
+    echo "    reload    Reload shell configuration"
+    echo "    clean     Remove broken symlinks"
+    echo "    sync      Commit and push changes"
+    echo "    help      Show this help message"
+}
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+case "${1:-help}" in
+    edit)
+        dotfiles_edit
+        ;;
+    update)
+        dotfiles_update
+        ;;
+    link)
+        dotfiles_link
+        ;;
+    status)
+        dotfiles_status
+        ;;
+    doctor)
+        dotfiles_doctor
+        ;;
+    reload)
+        dotfiles_reload
+        ;;
+    clean)
+        dotfiles_clean
+        ;;
+    sync)
+        dotfiles_sync
+        ;;
+    help|--help|-h)
+        dotfiles_help
+        ;;
+    *)
+        print_error "Unknown command: $1"
+        dotfiles_help
+        exit 1
+        ;;
+esac

@@ -1,5 +1,11 @@
+#!/usr/bin/env bash
+# =============================================================================
+# SHARED ENVIRONMENT CONFIGURATION
+# =============================================================================
+# Public environment variables that apply to both personal and work environments
+
 # Editor configuration
-export EDITOR="zed -w"
+export EDITOR="zed"
 export VISUAL="$EDITOR"
 
 # Shell history configuration
@@ -14,18 +20,6 @@ export HIST_STAMPS='dd/mm/yyyy'
 export HOMEBREW_AUTO_UPDATE_SECS=600000
 export HOMEBREW_NO_ANALYTICS=1
 
-# PATH configuration
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.bin:$PATH"
-export PATH="/usr/local/sbin:$PATH"
-export PATH="./bin:$PATH"
-
-# Mise configuration
-export PATH="$HOME/.local/share/mise/shims:$PATH"
-
-# PostgreSQL configuration
-# export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
-
 # Language-specific configuration
 export ERL_AFLAGS="-kernel shell_history enabled"
 export ELIXIR_EDITOR="zed +__LINE__ __FILE__"
@@ -34,9 +28,6 @@ export ELIXIR_EDITOR="zed +__LINE__ __FILE__"
 export STARSHIP_CONFIG="$HOME/.starship.toml"
 export GPG_TTY="$(tty)"
 export BAT_THEME="TwoDark"
-
-# Disable auto title
-export DISABLE_AUTO_TITLE="true"
 
 # FZF configuration with modern colors
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
@@ -61,15 +52,3 @@ export _ZO_ECHO=1
 # Development tool configurations
 export DFT_DISPLAY=inline
 export DFT_TAB_WIDTH=2
-
-# Setup PNPM
-export PNPM_HOME="/Users/andriel/Library/pnpm"
-case ":$PATH:" in
-*":$PNPM_HOME:"*) ;;
-*) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-
-# Tab title function
-precmd() {
-  echo -ne "\e]1;${PWD##*/}\a"
-}
