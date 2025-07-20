@@ -25,3 +25,6 @@ gpg/gpg.conf:~/.gnupg/gpg.conf
 # XDG config directory (folder mapping)
 mise/:~/.config/mise/
 zed/:~/.config/zed/
+
+# Claude Code
+claude/:~/.claude
