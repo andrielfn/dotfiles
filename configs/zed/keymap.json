@@ -29,15 +29,10 @@
       "cmd-k cmd-u": "editor::ConvertToUpperCase",
       "cmd-shift-d": "editor::DuplicateLineDown",
       "cmd-l cmd-p": "workspace::CopyRelativePath",
-      "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
+      // "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
       "alt-.": ["workspace::SendKeystrokes", "|>"],
-      "cmd-l": "go_to_line::Toggle"
-    }
-  },
-  {
-    "context": "ProjectPanel && not_editing",
-    "bindings": {
-      "c": "project_panel::CollapseAllEntries"
+      "cmd-l": "go_to_line::Toggle",
+      "cmd-shift-c": "project_panel::CollapseAllEntries"
     }
   },
   {
@@ -51,6 +46,21 @@
     "use_key_equivalents": true,
     "bindings": {
       "cmd-i": "assistant::InlineAssist"
+    }
+  },
+  {
+    "bindings": {
+      "alt-shift-down": "editor::FindNextMatch"
+    }
+  },
+  {
+    "bindings": {
+      "alt-shift-up": "editor::FindPreviousMatch"
+    }
+  },
+  {
+    "bindings": {
+      "cmd-shift-c": null
     }
   }
 ]
