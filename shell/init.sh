@@ -66,6 +66,7 @@ init_shell() {
 
   if command -v mise &>/dev/null; then
     eval "$(mise activate zsh)"
+    eval "$(mise activate zsh --shims)"
   fi
 
   if command -v direnv &>/dev/null; then
@@ -77,9 +78,9 @@ init_shell() {
   fi
 
   # Initialize 1Password CLI if enabled and available
-  if [[ "$ENABLE_1PASSWORD_CLI" == "true" ]] && command -v op &>/dev/null; then
-    eval "$(op signin)"
-  fi
+  # if [[ "$ENABLE_1PASSWORD_CLI" == "true" ]] && command -v op &>/dev/null; then
+  #   eval "$(op signin)"
+  # fi
 }
 
 # Run initialization
