@@ -31,8 +31,7 @@
       "cmd-l cmd-p": "workspace::CopyRelativePath",
       // "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
       "alt-.": ["workspace::SendKeystrokes", "|>"],
-      "cmd-l": "go_to_line::Toggle",
-      "cmd-shift-c": "project_panel::CollapseAllEntries"
+      "cmd-l": "go_to_line::Toggle"
     }
   },
   {
@@ -60,7 +59,12 @@
   },
   {
     "bindings": {
-      "cmd-shift-c": null
+      "cmd-shift-w": null
+    }
+  },
+  {
+    "bindings": {
+      "cmd-shift-c": "project_panel::CollapseAllEntries"
     }
   }
 ]

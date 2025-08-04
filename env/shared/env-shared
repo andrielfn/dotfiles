@@ -23,6 +23,7 @@ export HOMEBREW_NO_ANALYTICS=1
 # Language-specific configuration
 export ERL_AFLAGS="-kernel shell_history enabled"
 export ELIXIR_EDITOR="zed +__LINE__ __FILE__"
+export PLUG_EDITOR="zed://file/__LINE__:__FILE__"
 
 # Tool configurations
 export STARSHIP_CONFIG="$HOME/.starship.toml"
