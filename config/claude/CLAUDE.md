@@ -35,3 +35,7 @@
 - NEVER ignore the output of the system or the tests - Logs and messages often contain CRITICAL information.
 - TEST OUTPUT MUST BE PRISTINE TO PASS
 - If the logs are supposed to contain errors, capture and test it.
+
+# Icon Naming
+
+- When using Hugeicons, the name should be prefixed with "huge-" and suffixed with "-stroke-rounded". In other words, it will be something like "huge-add-01-stroke-rounded" where "add-01" is the icon name.
