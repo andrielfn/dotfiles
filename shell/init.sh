@@ -60,8 +60,8 @@ init_shell() {
     eval "$(starship init zsh)"
   fi
 
-  if command -v zoxide &>/dev/null; then
-    eval "$(zoxide init zsh)"
+  if command -v zoxide &>/dev/null && [[ "$CLAUDECODE" != "1" ]]; then
+    eval "$(zoxide init --cmd cd zsh)"
   fi
 
   if command -v mise &>/dev/null; then

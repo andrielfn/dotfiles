@@ -180,6 +180,7 @@ disabled = true
 
 [nodejs]
 symbol = " "
+disabled = true
 
 [ocaml]
 symbol = " "

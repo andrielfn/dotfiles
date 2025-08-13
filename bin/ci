@@ -34,19 +34,19 @@ generate_commit_messages() {
 Review the provided git diff carefully and generate exactly 3 different commit message options based on the changes.
 
 Guidelines for each commit message:
-- Focus on WHAT the change accomplishes for users/functionality, not HOW it's implemented
+# - Focus on WHAT the change accomplishes for users/functionality, not HOW it's implemented
 - Describe the core business logic or feature change, not technical implementation details
 - Use the imperative mood in the description (e.g., 'Add user authentication' not 'added auth flags')
 - Each message MUST start with an uppercase letter
 - Each message MUST be a single line, no longer than 100 characters (strictly enforced)
 - Vary the level of detail and focus between the 3 options
-- Avoid mentioning internal variable names, function names, or implementation specifics
+- Avoid too generic commit messages like 'Refine styling for UI components'
 
 Reply with EXACTLY 3 commit messages separated by ' ||| ' (three pipe characters), with no additional text, quotes, comments, or numbering. Each message must be under 100 characters. Example format: 'message1 ||| message2 ||| message3'"
 
   # Use jq to properly create JSON payload
   local payload=$(jq -n \
-    --arg model "claude-3-5-haiku-20241022" \
+    --arg model "claude-3-7-sonnet-latest" \
     --arg prompt "$prompt" \
     --arg changes "$changes" \
     --arg diff "$diff" \
@@ -125,7 +125,7 @@ for i in {1..3}; do
     echo "${YELLOW}Please try running the script again for shorter messages.${NC}"
     exit 1
   fi
-  
+
   first_char="${messages[$i]:0:1}"
   if [[ ! "$first_char" =~ [A-Z] ]]; then
     echo "${RED}Error: Message $i must start with uppercase letter: ${messages[$i]}${NC}"

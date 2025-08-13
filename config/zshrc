@@ -17,7 +17,7 @@ ZOXIDE_CMD_OVERRIDE="cd"
 plugins=(
     git
     command-not-found
-    zoxide
+    # zoxide
     zsh-autosuggestions
     zsh-syntax-highlighting
 )

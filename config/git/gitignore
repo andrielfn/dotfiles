@@ -98,6 +98,8 @@ logs/
 # MISCELLANEOUS
 # =============================================================================
 
+.mise.local.toml
+.claude/settings.local.json
 
 # Cache directories
 .cache/
