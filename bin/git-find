@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "Usage: git find <search-term>"
+    echo "Search git history for changes containing a specific term"
+    exit 1
+fi
+
+search_term="$*"
+
+echo "Searching git history for: $search_term"
+echo "========================================"
+
+# Temporarily unset RIPGREP_CONFIG_PATH to avoid config issues
+unset RIPGREP_CONFIG_PATH
+
+# Find commits where the search term was added or removed using pickaxe
+git log --format="%H" -S"$search_term" --all | while read commit; do
+    echo
+    echo -e "\033[33mCommit:\033[0m $(git log -1 --format='%h - %ad - %an' --date=short $commit)"
+    echo -e "\033[37m$(git log -1 --format='%s' $commit)\033[0m"
+    echo "----------------------------------------"
+    
+    # Show the diff for this commit, highlighting the search term
+    # Using git show to get the actual changes
+    git show "$commit" --format="" | \
+        grep -A 3 -B 3 --color=always "$search_term" || true
+    
+    echo "========================================"
+done

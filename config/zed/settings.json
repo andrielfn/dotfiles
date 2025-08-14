@@ -1,4 +1,14 @@
 {
+  "when_closing_with_no_tabs": "close_window",
+  "edit_predictions": {
+    "mode": "eager",
+    "copilot": {
+      "proxy": null,
+      "proxy_no_verify": null,
+      "enterprise_uri": null
+    },
+    "enabled_in_text_threads": false
+  },
   "tabs": {
     "file_icons": true
   },
@@ -30,7 +40,7 @@
   ],
   "scroll_beyond_last_line": "off",
   "features": {
-    "edit_prediction_provider": "zed"
+    "edit_prediction_provider": "copilot"
   },
   "telemetry": {
     "metrics": false
@@ -73,7 +83,6 @@
   },
   "file_scan_exclusions": [
     "**/.elixir-tools",
-    "**/.github",
     "**/.elixir-tools",
     "**/_build",
     "**/deps",
@@ -92,7 +101,8 @@
     "**/.postgres",
     "**/.lefthook",
     "**/.vscode",
-    "**/.direnv"
+    "**/.direnv",
+    "**/ae_model_params"
   ],
   "file_types": {
     "JSON": ["prettierrc"],

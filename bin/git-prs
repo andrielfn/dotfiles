@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+# Save as: git-pr-checkout
+# Usage: git pr-checkout
+
+set -e
+
+# Get PR data including closed/merged PRs
+pr_info=$(gh pr list --author="@me" --state=all --limit=50 \
+    --json number,title,headRefName,state,mergedAt,closedAt \
+    --template '{{range .}}{{.headRefName}}|{{.number}}|{{.title}}|{{.state}}|{{if .mergedAt}}merged{{else if .closedAt}}closed{{else}}open{{end}}{{"\n"}}{{end}}')
+
+if [[ -z "$pr_info" ]]; then
+    echo "No pull requests found."
+    exit 1
+fi
+
+# Format for fzf with status indicators and sort (open first, then closed, then merged)
+formatted_prs=$(echo "$pr_info" | awk -F'|' '
+{
+    branch = $1
+    number = $2
+    title = $3
+    state = $4
+    status = $5
+
+    # Add status indicators and sort priority
+    if (status == "merged") {
+        indicator = "✅"
+        sort_priority = 3
+    } else if (status == "closed") {
+        indicator = "❌"
+        sort_priority = 2
+    } else {
+        indicator = "🔄"
+        sort_priority = 1
+    }
+
+    printf "%d|%s %s #%s %s\n", sort_priority, indicator, branch, number, title
+}' | sort -n | cut -d'|' -f2-)
+
+# Use fzf to select a PR with simplified preview
+selected=$(echo "$formatted_prs" | \
+    fzf --prompt="Checkout PR branch: " \
+        --height=50% \
+        --preview='
+            branch=$(echo {} | awk "{print \$2}")
+            pr_number=$(echo {} | awk "{print \$3}" | tr -d "#")
+            echo "Branch: $branch"
+            echo "PR #$pr_number"
+            echo ""
+            gh pr view "$pr_number" 2>/dev/null | head -20
+        ' \
+        --preview-window=right:35%:wrap \
+        --bind='ctrl-o:execute(gh pr view {3} --web)+abort' \
+        --header='ENTER: checkout | CTRL-O: open in browser')
+
+if [[ -n "$selected" ]]; then
+    branch_name=$(echo "$selected" | awk '{print $2}')
+    pr_number=$(echo "$selected" | awk '{print $3}' | tr -d '#')
+
+    echo "Selected: $branch_name"
+
+    # Check if branch exists locally
+    if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+        echo "Checking out existing local branch: $branch_name"
+        git checkout "$branch_name"
+    else
+        echo "Branch not found locally. Fetching from remote..."
+
+        # Try to fetch and checkout the branch
+        if git fetch origin "$branch_name:$branch_name" 2>/dev/null; then
+            echo "Checking out fetched branch: $branch_name"
+            git checkout "$branch_name"
+        else
+            echo "Could not fetch branch. Trying to checkout PR directly..."
+            gh pr checkout "$pr_number"
+        fi
+    fi
+
+    echo "✅ Successfully checked out $branch_name"
+fi
