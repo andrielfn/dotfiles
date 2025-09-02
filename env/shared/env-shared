@@ -29,6 +29,7 @@ export PLUG_EDITOR="zed://file/__LINE__:__FILE__"
 export STARSHIP_CONFIG="$HOME/.starship.toml"
 export GPG_TTY="$(tty)"
 export BAT_THEME="TwoDark"
+export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
 # FZF configuration with modern colors
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

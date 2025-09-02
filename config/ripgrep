@@ -1,0 +1,63 @@
+# Global ripgrep configuration file
+# This file sets default options for ripgrep searches
+
+# Always use colors in output
+--color=always
+
+# Show line numbers
+--line-number
+
+# Enable smart case searching (case insensitive unless pattern contains uppercase)
+--smart-case
+
+# Follow symbolic links
+--follow
+
+# Search hidden files
+--hidden
+
+# Exclude common build and dependency directories
+--glob=!deps/
+--glob=!_build/
+--glob=!node_modules/
+--glob=!priv/static/
+--glob=!target/
+--glob=!build/
+--glob=!dist/
+--glob=!.git/
+--glob=!.svn/
+--glob=!.hg/
+--glob=!.DS_Store
+
+# Exclude common cache directories
+--glob=!.cache/
+--glob=!.tmp/
+--glob=!tmp/
+--glob=!.next/
+--glob=!.nuxt/
+--glob=!.output/
+
+# Exclude compiled files
+--glob=!*.beam
+--glob=!*.o
+--glob=!*.so
+--glob=!*.dylib
+--glob=!*.dll
+--glob=!*.exe
+
+# Exclude log files
+--glob=!*.log
+--glob=!logs/
+
+# Exclude coverage reports
+--glob=!coverage/
+--glob=!.nyc_output/
+--glob=!.coverage/
+
+# Exclude IDE and editor files
+--glob=!.vscode/
+--glob=!.idea/
+--glob=!.elixir_ls/
+--glob=!*.swp
+--glob=!*.swo
+--glob=!*~
