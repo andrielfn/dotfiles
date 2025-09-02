@@ -1,0 +1,279 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Parse command line arguments
+declare -a excluded_packages=()
+
+show_help() {
+    echo "Usage: mix-bump [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --except PACKAGE    Exclude a package from updates (can be used multiple times)"
+    echo "  --help              Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  mix-bump"
+    echo "  mix-bump --except phoenix"
+    echo "  mix-bump --except phoenix --except ecto"
+    exit 0
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --except)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}Error: --except requires a package name${NC}"
+                exit 1
+            fi
+            excluded_packages+=("$2")
+            shift 2
+            ;;
+        --help|-h)
+            show_help
+            ;;
+        *)
+            echo -e "${RED}Error: Unknown option $1${NC}"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if we're in a mix project
+if [ ! -f "mix.exs" ]; then
+    echo -e "${RED}Error: Not in a mix project directory (mix.exs not found)${NC}"
+    exit 1
+fi
+
+# Function to parse version and determine update type
+get_update_type() {
+    local current="$1"
+    local latest="$2"
+    
+    IFS='.' read -r curr_major curr_minor curr_patch <<< "$current"
+    IFS='.' read -r new_major new_minor new_patch <<< "$latest"
+    
+    # Remove any pre-release suffixes for comparison
+    curr_patch="${curr_patch%%-*}"
+    new_patch="${new_patch%%-*}"
+    
+    if [ "$curr_major" != "$new_major" ]; then
+        echo "major"
+    elif [ "$curr_minor" != "$new_minor" ]; then
+        echo "minor"
+    else
+        echo "patch"
+    fi
+}
+
+# Get outdated dependencies
+echo -e "${BLUE}Checking for outdated dependencies...${NC}"
+outdated_output=$(mix hex.outdated 2>/dev/null || true)
+
+if [ -z "$outdated_output" ] || echo "$outdated_output" | grep -q "No hex dependencies"; then
+    echo -e "${GREEN}All dependencies are up to date!${NC}"
+    exit 0
+fi
+
+# Parse outdated dependencies
+declare -a packages=()
+declare -a current_versions=()
+declare -a latest_versions=()
+declare -a update_types=()
+
+# First, let's see what we're dealing with (debug mode)
+if [ "${DEBUG:-}" = "1" ]; then
+    echo "=== RAW OUTPUT ==="
+    echo "$outdated_output"
+    echo "=== END RAW OUTPUT ==="
+fi
+
+# Parse the output - mix hex.outdated has a specific format
+# Skip the header and parse only actual dependency lines
+parsing_started=false
+
+while IFS= read -r line; do
+    # Look for the header separator to know when to start parsing
+    if [[ "$line" =~ ^Dependency[[:space:]]+Current[[:space:]]+Latest ]]; then
+        parsing_started=true
+        continue
+    fi
+    
+    # Skip lines until we've seen the header
+    if [ "$parsing_started" = false ]; then
+        continue
+    fi
+    
+    # Skip empty lines
+    if [[ -z "$line" ]] || [[ "$line" =~ ^[[:space:]]*$ ]]; then
+        continue
+    fi
+    
+    # Stop if we hit the summary line
+    if [[ "$line" =~ ^Run[[:space:]]+"mix[[:space:]]+deps.update" ]] || [[ "$line" =~ ^A[[:space:]]+green ]] || [[ "$line" =~ ^There[[:space:]]+are ]]; then
+        break
+    fi
+    
+    # Parse dependency line - be more flexible with the format
+    # Format is usually: package_name  current_version  latest_version  [Update possible]
+    if [[ "$line" =~ ^([a-zA-Z0-9_]+)[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+[^[:space:]]*)[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+[^[:space:]]*) ]]; then
+        package="${BASH_REMATCH[1]}"
+        current="${BASH_REMATCH[2]}"
+        latest="${BASH_REMATCH[3]}"
+        
+        # Check if package is excluded
+        is_excluded=false
+        for excluded in "${excluded_packages[@]}"; do
+            if [ "$package" = "$excluded" ]; then
+                is_excluded=true
+                break
+            fi
+        done
+        
+        # Only add if versions are different and package is not excluded
+        if [ "$current" != "$latest" ] && [ "$is_excluded" = false ]; then
+            packages+=("$package")
+            current_versions+=("$current")
+            latest_versions+=("$latest")
+            update_types+=("$(get_update_type "$current" "$latest")")
+        fi
+    fi
+done <<< "$outdated_output"
+
+if [ ${#packages[@]} -eq 0 ]; then
+    echo -e "${GREEN}No outdated dependencies found (after exclusions)${NC}"
+    exit 0
+fi
+
+# Show excluded packages if any
+if [ ${#excluded_packages[@]} -gt 0 ]; then
+    echo -e "\n${BLUE}Excluding packages: ${excluded_packages[*]}${NC}"
+fi
+
+# Display outdated dependencies
+echo -e "\n${YELLOW}Found ${#packages[@]} outdated dependencies:${NC}"
+for i in "${!packages[@]}"; do
+    type_color=""
+    case "${update_types[$i]}" in
+        patch) type_color="${GREEN}" ;;
+        minor) type_color="${YELLOW}" ;;
+        major) type_color="${RED}" ;;
+    esac
+    printf "${type_color}%-20s${NC} %s -> %s (${type_color}%s${NC})\n" \
+        "${packages[$i]}" "${current_versions[$i]}" "${latest_versions[$i]}" "${update_types[$i]}"
+done
+
+# Ask user what to update
+echo -e "\n${BLUE}What would you like to update?${NC}"
+echo "1) Patch updates only"
+echo "2) Minor and patch updates"
+echo "3) All updates (including major)"
+echo "4) Cancel"
+read -p "Choice [1-4]: " choice
+
+case "$choice" in
+    1) filter="patch" ;;
+    2) filter="minor" ;;
+    3) filter="major" ;;
+    4) 
+        echo "Update cancelled"
+        exit 0
+        ;;
+    *)
+        echo -e "${RED}Invalid choice${NC}"
+        exit 1
+        ;;
+esac
+
+# Filter packages based on choice
+declare -a packages_to_update=()
+declare -a versions_to_update=()
+declare -a new_versions=()
+
+for i in "${!packages[@]}"; do
+    update_type="${update_types[$i]}"
+    
+    should_update=false
+    case "$filter" in
+        patch)
+            [ "$update_type" = "patch" ] && should_update=true
+            ;;
+        minor)
+            [[ "$update_type" = "patch" || "$update_type" = "minor" ]] && should_update=true
+            ;;
+        major)
+            should_update=true
+            ;;
+    esac
+    
+    if [ "$should_update" = true ]; then
+        packages_to_update+=("${packages[$i]}")
+        versions_to_update+=("${current_versions[$i]}")
+        new_versions+=("${latest_versions[$i]}")
+    fi
+done
+
+if [ ${#packages_to_update[@]} -eq 0 ]; then
+    echo -e "${YELLOW}No packages match the selected criteria${NC}"
+    exit 0
+fi
+
+# Update packages one by one
+echo -e "\n${BLUE}Updating ${#packages_to_update[@]} packages...${NC}\n"
+
+successful_updates=0
+failed_updates=0
+
+for i in "${!packages_to_update[@]}"; do
+    package="${packages_to_update[$i]}"
+    old_version="${versions_to_update[$i]}"
+    new_version="${new_versions[$i]}"
+    
+    echo -e "${BLUE}[$((i+1))/${#packages_to_update[@]}] Updating ${package} ${old_version} -> ${new_version}...${NC}"
+    
+    # Update the package
+    if mix deps.update "$package" --no-deps-check >/dev/null 2>&1; then
+        # Check if compilation succeeds
+        echo "  Compiling..."
+        if mix compile --warnings-as-errors >/dev/null 2>&1; then
+            # Commit the change
+            echo "  Committing..."
+            git add -A
+            if git commit -m "Bump ${package} ${old_version} -> ${new_version}" >/dev/null 2>&1; then
+                echo -e "  ${GREEN}✓ Successfully updated and committed${NC}"
+                successful_updates=$((successful_updates + 1))
+            else
+                echo -e "  ${YELLOW}⚠ No changes to commit (dependency might be up-to-date in lock file)${NC}"
+                successful_updates=$((successful_updates + 1))
+            fi
+        else
+            echo -e "  ${RED}✗ Compilation failed, reverting...${NC}"
+            git checkout -- mix.exs mix.lock
+            mix deps.get >/dev/null 2>&1
+            failed_updates=$((failed_updates + 1))
+        fi
+    else
+        echo -e "  ${RED}✗ Update failed${NC}"
+        ((failed_updates++))
+    fi
+    echo
+done
+
+# Summary
+echo -e "${GREEN}Update complete!${NC}"
+echo -e "  Successful: ${GREEN}${successful_updates}${NC}"
+if [ $failed_updates -gt 0 ]; then
+    echo -e "  Failed: ${RED}${failed_updates}${NC}"
+fi
+
+if [ $successful_updates -gt 0 ]; then
+    echo -e "\n${YELLOW}Don't forget to run your tests before pushing!${NC}"
+fi
