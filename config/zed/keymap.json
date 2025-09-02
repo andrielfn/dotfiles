@@ -28,7 +28,7 @@
       "cmd-k cmd-l": "editor::ConvertToLowerCase",
       "cmd-k cmd-u": "editor::ConvertToUpperCase",
       "cmd-shift-d": "editor::DuplicateLineDown",
-      "cmd-l cmd-p": "workspace::CopyRelativePath",
+      "alt-p": "workspace::CopyRelativePath",
       // "cmd-shift-c": ["workspace::SendKeystrokes", "cmd-shift-e c cmd-shift-e"],
       "alt-.": ["workspace::SendKeystrokes", "|>"],
       "cmd-l": "go_to_line::Toggle"
