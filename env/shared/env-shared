@@ -5,7 +5,7 @@
 # Public environment variables that apply to both personal and work environments
 
 # Editor configuration
-export EDITOR="zed"
+export EDITOR="zed -w"
 export VISUAL="$EDITOR"
 
 # Shell history configuration

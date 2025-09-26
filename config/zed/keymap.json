@@ -66,5 +66,10 @@
     "bindings": {
       "cmd-shift-c": "project_panel::CollapseAllEntries"
     }
+  },
+  {
+    "bindings": {
+      "cmd-shift-l": "editor::SplitSelectionIntoLines"
+    }
   }
 ]

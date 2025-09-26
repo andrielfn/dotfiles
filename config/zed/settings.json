@@ -9,6 +9,11 @@
     },
     "enabled_in_text_threads": false
   },
+  "agent_servers": {
+    "claude": {
+      "default_mode": "acceptEdits"
+    }
+  },
   "tabs": {
     "file_icons": true
   },
@@ -47,8 +52,8 @@
   },
   "agent": {
     "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-sonnet-4"
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-latest"
     }
   },
   "wrap_guides": [120],
@@ -67,20 +72,23 @@
   "languages": {
     "Elixir": {
       "language_servers": [
-        "elixir-ls",
+        "expert",
+        "!elixir-ls",
+        "!next-ls",
+        "!lexical",
         "tailwindcss-language-server",
         "emmet-language-server",
         "vscode-html-language-server"
       ]
     }
   },
-  "lsp": {
-    "elixir-ls": {
-      "settings": {
-        "dialyzerEnabled": false
-      }
-    }
-  },
+  // "lsp": {
+  //   "elixir-ls": {
+  //     "settings": {
+  //       "dialyzerEnabled": false
+  //     }
+  //   }
+  // },
   "file_scan_exclusions": [
     "**/.elixir-tools",
     "**/.elixir-tools",
