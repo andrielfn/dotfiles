@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+# Get default branch efficiently
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+if [ -z "$DEFAULT_BRANCH" ]; then
+  DEFAULT_BRANCH="main"
+fi
+
+# Get current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+# Interactive branch cleanup using Python
+python3 -c "
+import subprocess
+import sys
+import os
+
+# Colors
+CYAN = '\033[36m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+RED = '\033[31m'
+PURPLE = '\033[35m'
+GRAY = '\033[90m'
+BOLD_CYAN = '\033[1;36m'
+BOLD_GREEN = '\033[1;32m'
+BOLD_RED = '\033[1;31m'
+BOLD_YELLOW = '\033[1;33m'
+RESET = '\033[0m'
+
+default_branch = '$DEFAULT_BRANCH'
+current_branch = '$CURRENT_BRANCH'
+
+# Get branches data
+branches = []
+result = subprocess.run(['git', 'for-each-ref', '--sort=-committerdate', 'refs/heads',
+                        '--format=%(refname:short)|%(committerdate:relative)|%(authorname)'],
+                       capture_output=True, text=True)
+
+for line in result.stdout.strip().split('\n'):
+    if not line:
+        continue
+    parts = line.split('|')
+    if len(parts) != 3:
+        continue
+
+    branch, last_commit, author = parts
+
+    # Skip default and current branches
+    if branch == default_branch or branch == current_branch:
+        continue
+
+    # Get commit counts
+    try:
+        counts = subprocess.run(['git', 'rev-list', '--left-right', '--count', f'{default_branch}...{branch}'],
+                               capture_output=True, text=True)
+        behind, ahead = counts.stdout.strip().split()
+    except:
+        behind, ahead = '0', '0'
+
+    # Check if merged
+    merged_check = subprocess.run(['git', 'branch', '--merged', default_branch],
+                                 capture_output=True, text=True)
+    is_merged = branch in merged_check.stdout
+
+    branches.append({
+        'name': branch,
+        'ahead': int(ahead),
+        'behind': int(behind),
+        'last_commit': last_commit,
+        'author': author[:20],
+        'is_merged': is_merged
+    })
+
+if not branches:
+    print(f'{YELLOW}No branches to clean up!{RESET}')
+    sys.exit(0)
+
+print(f'{BOLD_CYAN}=== Git Branch Cleanup ==={RESET}')
+print(f'{GRAY}Current branch: {current_branch}{RESET}')
+print(f'{GRAY}Default branch: {default_branch}{RESET}')
+print()
+
+deleted_count = 0
+skipped_count = 0
+total = len(branches)
+
+for i, b in enumerate(branches, 1):
+    # Clear screen for each branch (optional - comment out if you prefer scrolling)
+    # os.system('clear')
+
+    print(f'{BOLD_CYAN}Branch {i}/{total}:{RESET}')
+    print()
+
+    # Display branch info
+    name_color = GREEN if b['is_merged'] else YELLOW
+    print(f'  {name_color}{b[\"name\"]}{RESET}')
+
+    # Show merge status
+    if b['is_merged']:
+        print(f'  {GREEN}✓ Merged into {default_branch}{RESET}')
+    else:
+        print(f'  {YELLOW}✗ Not merged{RESET}')
+
+    # Show stats
+    print(f'  {CYAN}Ahead:{RESET} {b[\"ahead\"]}  {CYAN}Behind:{RESET} {b[\"behind\"]}')
+    print(f'  {GRAY}Last commit: {b[\"last_commit\"]} by {b[\"author\"]}{RESET}')
+
+    # Show warning if not merged and has commits
+    if not b['is_merged'] and b['ahead'] > 0:
+        print(f'  {BOLD_YELLOW}⚠ Warning: This branch has {b[\"ahead\"]} unmerged commits!{RESET}')
+
+    print()
+
+    # Ask for action
+    while True:
+        if b['is_merged']:
+            prompt = f'{BOLD_GREEN}Delete this branch?{RESET} [y/n/q] (recommended: y): '
+        else:
+            prompt = f'{BOLD_YELLOW}Delete this branch?{RESET} [y/n/q] (recommended: n): '
+
+        try:
+            choice = input(prompt).lower().strip()
+        except (EOFError, KeyboardInterrupt):
+            print(f'\\n{YELLOW}Cleanup interrupted!{RESET}')
+            sys.exit(0)
+
+        if choice in ['y', 'yes']:
+            # Delete the branch
+            result = subprocess.run(['git', 'branch', '-D', b['name']],
+                                  capture_output=True, text=True)
+            if result.returncode == 0:
+                print(f'{GREEN}✓ Deleted branch: {b[\"name\"]}{RESET}')
+                deleted_count += 1
+            else:
+                print(f'{RED}✗ Failed to delete branch: {b[\"name\"]}{RESET}')
+                print(f'{GRAY}{result.stderr}{RESET}')
+            print()
+            break
+        elif choice in ['n', 'no']:
+            print(f'{GRAY}Skipped branch: {b[\"name\"]}{RESET}')
+            skipped_count += 1
+            print()
+            break
+        elif choice in ['q', 'quit']:
+            print(f'\\n{YELLOW}Cleanup stopped by user!{RESET}')
+            print(f'{CYAN}Deleted: {deleted_count}, Skipped: {skipped_count}, Remaining: {total - i}{RESET}')
+            sys.exit(0)
+        else:
+            print(f'{RED}Please enter y (yes), n (no), or q (quit){RESET}')
+
+print(f'{BOLD_CYAN}=== Cleanup Complete ==={RESET}')
+print(f'{GREEN}Deleted: {deleted_count}{RESET}')
+print(f'{YELLOW}Skipped: {skipped_count}{RESET}')
+
+# Offer to prune remote branches
+print()
+choice = input(f'{BOLD_CYAN}Prune remote tracking branches?{RESET} [y/n]: ').lower().strip()
+if choice in ['y', 'yes']:
+    result = subprocess.run(['git', 'remote', 'prune', 'origin'],
+                          capture_output=True, text=True)
+    print(f'{GREEN}✓ Pruned remote tracking branches{RESET}')
+"
