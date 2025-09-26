@@ -44,6 +44,7 @@
 --glob=!*.dylib
 --glob=!*.dll
 --glob=!*.exe
+--glob=!*.ipynb
 
 # Exclude log files
 --glob=!*.log
@@ -61,3 +62,6 @@
 --glob=!*.swp
 --glob=!*.swo
 --glob=!*~
+
+# Other
+--glob=!*.svg

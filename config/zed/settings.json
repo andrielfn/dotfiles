@@ -157,7 +157,8 @@
     "**/.lefthook",
     "**/.vscode",
     "**/.direnv",
-    "**/ae_model_params"
+    "**/ae_model_params",
+    "**/*.ipynb"
   ],
   "file_types": {
     "JSON": [

@@ -48,7 +48,6 @@ yarn-error.log*
 /_build/
 /cover/
 /deps/
-/doc/
 /.fetch
 erl_crash.dump
 *.ez
@@ -114,6 +113,8 @@ coverage/
 *.lcov
 .coverage
 
-# Personal notes
+# Personal stuff
 INFOS/
 .claude
+bin/op*
+bin/
