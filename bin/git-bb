@@ -1,24 +1,107 @@
 #!/usr/bin/env bash
 
-# Determine the default branch name (main or master, typically)
-DEFAULT_BRANCH=$(git branch -r | grep 'origin/HEAD' | awk -F '/' '{print $NF}')
-
-# Fallback if origin/HEAD isn't available or doesn't point to main/master
+# Get default branch efficiently
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
 if [ -z "$DEFAULT_BRANCH" ]; then
-  if git show-ref --verify --quiet refs/heads/main; then
-    DEFAULT_BRANCH="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    DEFAULT_BRANCH="master"
-  else
-    echo "Error: Could not determine the default branch (checked for main and master)." >&2
-    exit 1
-  fi
+  DEFAULT_BRANCH="main"
 fi
 
-git for-each-ref --sort=-committerdate --format='%(refname:short)|%(authorname)|%(committerdate:relative)' refs/heads |
-  awk -v default_branch="$DEFAULT_BRANCH" -F'|' \
-    '$1 != default_branch {
-    cmd = sprintf("git branch --merged %s | grep -q -w \"%s\"", default_branch, $1)
-    merged_status = system(cmd)
-    printf "%s\033[32m%-40s\033[0m \033[35m%-20s\033[0m %s\n", (merged_status == 0 ? "\033[33m✔  \033[0m" : "   "), $1, $2, $3
-  }'
+# Get current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+# Use Python for better table formatting and coloring
+python3 -c "
+import subprocess
+import sys
+
+# Colors
+CYAN = '\033[36m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+RED = '\033[31m'
+PURPLE = '\033[35m'
+GRAY = '\033[90m'
+BOLD_CYAN = '\033[1;36m'
+BOLD_GREEN = '\033[1;32m'
+RESET = '\033[0m'
+
+default_branch = '$DEFAULT_BRANCH'
+current_branch = '$CURRENT_BRANCH'
+
+# Get branches data
+branches = []
+result = subprocess.run(['git', 'for-each-ref', '--sort=-committerdate', 'refs/heads',
+                        '--format=%(refname:short)|%(committerdate:relative)|%(authorname)'],
+                       capture_output=True, text=True)
+
+for line in result.stdout.strip().split('\n'):
+    if not line:
+        continue
+    parts = line.split('|')
+    if len(parts) != 3:
+        continue
+
+    branch, last_commit, author = parts
+
+    # Skip default branch
+    if branch == default_branch:
+        continue
+
+    # Get commit counts
+    try:
+        counts = subprocess.run(['git', 'rev-list', '--left-right', '--count', f'{default_branch}...{branch}'],
+                               capture_output=True, text=True)
+        behind, ahead = counts.stdout.strip().split()
+    except:
+        behind, ahead = '0', '0'
+
+    # Format branch with indicator
+    if branch == current_branch:
+        branch_display = f'* {branch}'
+    else:
+        branch_display = branch
+
+    # Truncate author
+    author = author[:20]
+
+    branches.append({
+        'branch': branch_display,
+        'ahead': int(ahead),
+        'behind': int(behind),
+        'last_commit': last_commit,
+        'author': author,
+        'is_current': branch == current_branch
+    })
+
+# Find max widths
+if branches:
+    max_branch = max(len(b['branch']) for b in branches)
+    max_branch = max(max_branch, len('BRANCH'))
+
+    # Print header
+    print(f'{BOLD_CYAN}{'BRANCH':<{max_branch}}  {'AHEAD':<7}{'BEHIND':<8}{'LAST COMMIT':<15}{'AUTHOR'}{RESET}')
+
+    # Print data
+    for b in branches:
+        # Color branch if current
+        if b['is_current']:
+            branch_str = f'{BOLD_GREEN}{b['branch']}{RESET}'
+            # Account for color codes in padding
+            branch_padded = branch_str + ' ' * (max_branch - len(b['branch']))
+        else:
+            branch_padded = f'{b['branch']:<{max_branch}}'
+
+        # Color ahead count
+        ahead_str = f'{CYAN}{b['ahead']}{RESET}'
+
+        # Color behind count based on value
+        if b['behind'] == 0:
+            behind_str = f'{GREEN}{b['behind']}{RESET}'
+        elif b['behind'] > 10:
+            behind_str = f'{RED}{b['behind']}{RESET}'
+        else:
+            behind_str = f'{YELLOW}{b['behind']}{RESET}'
+
+        # Format output
+        print(f'{branch_padded}  {ahead_str:<16}{behind_str:<17}{GRAY}{b['last_commit']:<15}{RESET}{PURPLE}{b['author']}{RESET}')
+"
