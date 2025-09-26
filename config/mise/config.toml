@@ -2,6 +2,9 @@
 # This file defines global tool versions
 
 [tools]
+elixir = "1.18.3"
+erlang = "27.3.3"
+pnpm = "latest"
 # Add tools as needed manually
 # Example:
 # erlang = "latest"
