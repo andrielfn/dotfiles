@@ -1,0 +1,90 @@
+# macOS
+macos-titlebar-style = tabs
+macos-option-as-alt = left
+macos-non-native-fullscreen = true
+
+# Font
+font-family = Cascadia Code NF
+font-style = Light
+font-style-bold = Light
+font-style-italic = Light Italic
+font-style-bold-italic = Italic
+font-size = 18
+font-thicken = false
+adjust-cell-height = 2
+
+# Window
+window-padding-x = 15
+window-padding-y = 15
+window-padding-balance = true
+window-padding-color = extend
+window-inherit-working-directory = true
+window-save-state = default
+
+# Shell integration
+shell-integration = detect
+shell-integration-features = cursor,sudo,title
+
+# Cursor
+cursor-style = bar
+cursor-style-blink = false
+
+# Mouse
+mouse-scroll-multiplier = 2
+mouse-hide-while-typing = true
+
+# Clipboard
+clipboard-read = allow
+clipboard-write = allow
+copy-on-select = false
+clipboard-trim-trailing-spaces = true
+
+# Splits
+unfocused-split-opacity = 0.5
+confirm-close-surface = true
+scrollback-limit = 50000000
+desktop-notifications = true
+
+# Quick terminal
+keybind = global:opt+grave_accent=toggle_quick_terminal
+quick-terminal-position = bottom
+quick-terminal-screen = mouse
+quick-terminal-autohide = true
+
+# Keybindings - split navigation
+keybind = cmd+left=goto_split:left
+keybind = cmd+right=goto_split:right
+keybind = cmd+up=goto_split:top
+keybind = cmd+down=goto_split:bottom
+
+# Keybindings - tab navigation
+keybind = cmd+opt+right=next_tab
+keybind = cmd+opt+left=previous_tab
+
+# Keybindings - reload config
+keybind = super+shift+comma=reload_config
+
+# Theme - Rosé Pine Dawn
+background = #faf4ed
+foreground = #575279
+selection-background = #ede8e2
+selection-foreground = #575279
+cursor-color = #575279
+palette = 0=#43413e
+palette = 1=#b4637a
+palette = 2=#56949f
+palette = 3=#ea9d34
+palette = 4=#286983
+palette = 5=#907aa9
+palette = 6=#d7827e
+palette = 7=#575279
+palette = 8=#9893a5
+palette = 9=#b4637a
+palette = 10=#56949f
+palette = 11=#ea9d34
+palette = 12=#286983
+palette = 13=#907aa9
+palette = 14=#d7827e
+palette = 15=#575279
+
+auto-update-channel = tip

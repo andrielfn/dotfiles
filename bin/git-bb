@@ -10,7 +10,7 @@ fi
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
 # Use Python for better table formatting and coloring
-python3 -c "
+python3 <<EOF
 import subprocess
 import sys
 
@@ -79,29 +79,29 @@ if branches:
     max_branch = max(max_branch, len('BRANCH'))
 
     # Print header
-    print(f'{BOLD_CYAN}{'BRANCH':<{max_branch}}  {'AHEAD':<7}{'BEHIND':<8}{'LAST COMMIT':<15}{'AUTHOR'}{RESET}')
+    print(f'{BOLD_CYAN}{"BRANCH":<{max_branch}}  {"AHEAD":<7}{"BEHIND":<8}{"LAST COMMIT":<15}{"AUTHOR"}{RESET}')
 
     # Print data
     for b in branches:
         # Color branch if current
         if b['is_current']:
-            branch_str = f'{BOLD_GREEN}{b['branch']}{RESET}'
+            branch_str = f'{BOLD_GREEN}{b["branch"]}{RESET}'
             # Account for color codes in padding
             branch_padded = branch_str + ' ' * (max_branch - len(b['branch']))
         else:
-            branch_padded = f'{b['branch']:<{max_branch}}'
+            branch_padded = f'{b["branch"]:<{max_branch}}'
 
         # Color ahead count
-        ahead_str = f'{CYAN}{b['ahead']}{RESET}'
+        ahead_str = f'{CYAN}{b["ahead"]}{RESET}'
 
         # Color behind count based on value
         if b['behind'] == 0:
-            behind_str = f'{GREEN}{b['behind']}{RESET}'
+            behind_str = f'{GREEN}{b["behind"]}{RESET}'
         elif b['behind'] > 10:
-            behind_str = f'{RED}{b['behind']}{RESET}'
+            behind_str = f'{RED}{b["behind"]}{RESET}'
         else:
-            behind_str = f'{YELLOW}{b['behind']}{RESET}'
+            behind_str = f'{YELLOW}{b["behind"]}{RESET}'
 
         # Format output
-        print(f'{branch_padded}  {ahead_str:<16}{behind_str:<17}{GRAY}{b['last_commit']:<15}{RESET}{PURPLE}{b['author']}{RESET}')
-"
+        print(f'{branch_padded}  {ahead_str:<16}{behind_str:<17}{GRAY}{b["last_commit"]:<15}{RESET}{PURPLE}{b["author"]}{RESET}')
+EOF

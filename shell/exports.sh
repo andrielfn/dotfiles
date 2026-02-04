@@ -15,10 +15,7 @@ export PATH="./bin:$PATH"
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 # PostgreSQL configuration (user-specific, often needs customization)
-# export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
-
-# Shell-specific settings
-export DISABLE_AUTO_TITLE="true"
+export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 
 # Setup PNPM
 export PNPM_HOME="/Users/andriel/Library/pnpm"
@@ -26,8 +23,3 @@ case ":$PATH:" in
 *":$PNPM_HOME:"*) ;;
 *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
-
-# Tab title function
-precmd() {
-  echo -ne "\e]1;${PWD##*/}\a"
-}

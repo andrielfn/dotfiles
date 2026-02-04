@@ -7,7 +7,6 @@
 set -euo pipefail
 
 DOTFILES_DIR="$HOME/.dotfiles"
-cd "$DOTFILES_DIR"
 
 # Source utilities with absolute paths
 SCRIPTS_DIR="$DOTFILES_DIR/scripts"
@@ -24,11 +23,11 @@ popd > /dev/null
 
 dotfiles_update() {
     print_step "Updating dotfiles"
-    
+
     # Pull latest changes
-    if git pull origin main; then
+    if git -C "$DOTFILES_DIR" pull origin main; then
         print_success "Dotfiles updated"
-        
+
         # Relink configurations
         dotfiles_link
     else
@@ -48,10 +47,10 @@ dotfiles_link() {
 
 dotfiles_status() {
     print_step "Dotfiles Status"
-    
+
     # Git status
     printf "\n${BOLD}Git Status:${RESET}\n"
-    git status --short
+    git -C "$DOTFILES_DIR" status --short
     
     # Check for broken symlinks
     printf "\n${BOLD}Checking symlinks:${RESET}\n"
@@ -173,25 +172,25 @@ dotfiles_clean() {
 
 dotfiles_sync() {
     print_step "Syncing dotfiles to remote"
-    
+
     # Check if there are changes to commit (modified, added, or untracked files)
-    if ! git diff --quiet || ! git diff --cached --quiet || [[ -n $(git ls-files --others --exclude-standard) ]]; then
+    if ! git -C "$DOTFILES_DIR" diff --quiet || ! git -C "$DOTFILES_DIR" diff --cached --quiet || [[ -n $(git -C "$DOTFILES_DIR" ls-files --others --exclude-standard) ]]; then
         print_question "Commit message (or press Enter for default): "
         read -r commit_msg
-        
+
         if [[ -z "$commit_msg" ]]; then
             commit_msg="Update dotfiles configuration"
         fi
-        
-        git add .
-        git commit -m "$commit_msg"
+
+        git -C "$DOTFILES_DIR" add .
+        git -C "$DOTFILES_DIR" commit -m "$commit_msg"
         print_success "Changes committed"
     else
         print_success "No changes to commit"
     fi
-    
+
     # Push to remote
-    if git push; then
+    if git -C "$DOTFILES_DIR" push; then
         print_success "Changes pushed to remote"
     else
         print_error "Failed to push changes"

@@ -1,4 +1,27 @@
 {
+  "git_panel": {
+    "dock": "right"
+  },
+  "outline_panel": {
+    "dock": "right"
+  },
+  "colorize_brackets": false,
+  "title_bar": {
+    "show_menus": false,
+    "show_branch_icon": false
+  },
+  "prettier": {
+    "allowed": false
+  },
+  "toolbar": {
+    "code_actions": false
+  },
+  "use_smartcase_search": true,
+  "centered_layout": {
+    "left_padding": 2.1999998092651367
+  },
+  "on_last_window_closed": "platform_default",
+  "close_on_file_delete": true,
   "when_closing_with_no_tabs": "close_window",
   "edit_predictions": {
     "mode": "eager",
@@ -15,12 +38,17 @@
     }
   },
   "tabs": {
+    "close_position": "right",
+    "git_status": true,
     "file_icons": true
   },
   "show_edit_predictions": true,
   "git": {
     "inline_blame": {
       "enabled": false
+    },
+    "blame": {
+      "show_avatar": true
     }
   },
   "icon_theme": "Catppuccin Latte",
@@ -30,10 +58,14 @@
       "username": "andrielfn",
       "projects": [
         {
-          "paths": ["/etc"]
+          "paths": [
+            "/etc"
+          ]
         },
         {
-          "paths": ["/opt"]
+          "paths": [
+            "/opt"
+          ]
         }
       ]
     },
@@ -56,7 +88,9 @@
       "model": "claude-sonnet-4-latest"
     }
   },
-  "wrap_guides": [120],
+  "wrap_guides": [
+    120
+  ],
   "ui_font_size": 17,
   "theme": "Snowday",
   "buffer_font_size": 17,
@@ -80,15 +114,28 @@
         "emmet-language-server",
         "vscode-html-language-server"
       ]
+    },
+    "HEEX": {
+      "language_servers": [
+        "expert",
+        "!elixir-ls",
+        "!next-ls",
+        "!lexical",
+        "tailwindcss-language-server",
+        "emmet-language-server",
+        "vscode-html-language-server"
+      ]
     }
   },
-  // "lsp": {
-  //   "elixir-ls": {
-  //     "settings": {
-  //       "dialyzerEnabled": false
-  //     }
-  //   }
-  // },
+  "lsp": {
+    "expert": {
+      "binary": {
+        "arguments": [
+          "--stdio"
+        ]
+      }
+    }
+  },
   "file_scan_exclusions": [
     "**/.elixir-tools",
     "**/.elixir-tools",
@@ -113,7 +160,18 @@
     "**/ae_model_params"
   ],
   "file_types": {
-    "JSON": ["prettierrc"],
-    "Shell Script": ["envrc"]
+    "JSON": [
+      "prettierrc"
+    ],
+    "Shell Script": [
+      "envrc"
+    ]
+  },
+  "project_panel": {
+    "hide_root": false,
+    "git_status": true,
+    "folder_icons": true,
+    "entry_spacing": "comfortable",
+    "auto_fold_dirs": false
   }
 }

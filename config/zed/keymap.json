@@ -71,5 +71,17 @@
     "bindings": {
       "cmd-shift-l": "editor::SplitSelectionIntoLines"
     }
+  },
+  {
+    "context": "ContextEditor > Editor",
+    "bindings": {
+      "cmd-shift-g": "git_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "Pane",
+    "bindings": {
+      "cmd-shift-g": "git_panel::ToggleFocus"
+    }
   }
 ]
