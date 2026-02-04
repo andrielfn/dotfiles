@@ -18,6 +18,49 @@ source "./config.sh"
 popd > /dev/null
 
 # =============================================================================
+# DEPENDENCY DEFINITIONS (single source of truth)
+# =============================================================================
+
+# Homebrew packages required by dotfiles
+BREW_PACKAGES=(
+    # Modern CLI replacements
+    eza           # ls replacement
+    bat           # cat replacement
+    fd            # find replacement
+    ripgrep       # grep replacement
+    fzf           # fuzzy finder
+    ncdu          # du replacement
+    htop          # top replacement
+    duf           # df replacement
+    prettyping    # ping replacement
+    trash         # safe rm
+
+    # Shell & prompt
+    starship      # prompt
+    zoxide        # cd replacement
+    atuin         # shell history
+    direnv        # env per directory
+
+    # Development
+    mise          # tool version manager
+    gh            # GitHub CLI
+
+    # Security
+    gnupg         # GPG
+    pinentry-mac  # GPG pinentry for macOS
+)
+
+# Oh My Zsh custom plugins: "name|repo_url"
+OMZ_CUSTOM_PLUGINS=(
+    "fzf-tab|https://github.com/Aloxaf/fzf-tab"
+    "forgit|https://github.com/wfxr/forgit"
+    "zsh-autopair|https://github.com/hlissner/zsh-autopair"
+    "you-should-use|https://github.com/MichaelAquilina/zsh-you-should-use"
+    "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
+    "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting"
+)
+
+# =============================================================================
 # COMMANDS
 # =============================================================================
 
@@ -65,7 +108,7 @@ dotfiles_status() {
         if [[ -L "$dest" ]]; then
             if [[ ! -e "$dest" ]]; then
                 print_error "Broken: $dest"
-                ((broken_links++))
+                broken_links=$((broken_links + 1))
             fi
         elif [[ ! -e "$dest" ]]; then
             print_warning "Missing: $dest"
@@ -87,42 +130,159 @@ dotfiles_status() {
     echo "Dotfiles: $DOTFILES_DIR"
 }
 
-dotfiles_doctor() {
-    print_step "Running diagnostics"
-    
-    local issues=0
-    
-    # Check Oh My Zsh
-    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-        print_warning "Oh My Zsh not installed"
-        ((issues++))
+dotfiles_setup() {
+    print_step "Setting up dotfiles dependencies"
+
+    # 1. Homebrew
+    if ! command -v brew &>/dev/null; then
+        print_info "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        if [[ -f "/opt/homebrew/bin/brew" ]]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        elif [[ -f "/usr/local/bin/brew" ]]; then
+            eval "$(/usr/local/bin/brew shellenv)"
+        fi
+        print_success "Homebrew installed"
+    else
+        print_success "Homebrew already installed"
     fi
-    
-    # Check required commands
-    local commands=("git" "zsh" "brew")
-    for cmd in "${commands[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            print_warning "Missing command: $cmd"
-            ((issues++))
+
+    # 2. Brew packages
+    print_step "Installing brew packages"
+    local installed
+    installed=$(brew list --formula -1 2>/dev/null)
+    local to_install=()
+
+    for pkg in "${BREW_PACKAGES[@]}"; do
+        if echo "$installed" | grep -qx "$pkg"; then
+            print_success "$pkg"
+        else
+            to_install+=("$pkg")
         fi
     done
-    
+
+    if [[ ${#to_install[@]} -gt 0 ]]; then
+        print_info "Installing: ${to_install[*]}"
+        brew install "${to_install[@]}"
+        for pkg in "${to_install[@]}"; do
+            if command -v "$pkg" &>/dev/null || brew list "$pkg" &>/dev/null; then
+                print_success "$pkg installed"
+            else
+                print_error "Failed to install $pkg"
+            fi
+        done
+    fi
+
+    # 3. Oh My Zsh
+    print_step "Checking Oh My Zsh"
+    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+        print_info "Installing Oh My Zsh..."
+        RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+        print_success "Oh My Zsh installed"
+    else
+        print_success "Oh My Zsh already installed"
+    fi
+
+    # 4. Custom plugins
+    print_step "Checking Oh My Zsh plugins"
+    local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
+    mkdir -p "$plugins_dir"
+
+    for entry in "${OMZ_CUSTOM_PLUGINS[@]}"; do
+        local name="${entry%%|*}"
+        local repo="${entry##*|}"
+
+        if [[ -d "$plugins_dir/$name" ]]; then
+            print_success "$name"
+        else
+            print_info "Cloning $name..."
+            if git clone --depth=1 "$repo" "$plugins_dir/$name" 2>/dev/null; then
+                print_success "$name installed"
+            else
+                print_error "Failed to clone $name"
+            fi
+        fi
+    done
+
+    # 5. Link configurations
+    dotfiles_link
+
+    # 6. Set default shell to zsh if needed
+    if [[ "$SHELL" != *"zsh"* ]]; then
+        print_info "Setting default shell to zsh..."
+        local zsh_path
+        zsh_path=$(which zsh)
+        if grep -qx "$zsh_path" /etc/shells; then
+            chsh -s "$zsh_path"
+            print_success "Default shell set to zsh"
+        else
+            print_warning "zsh not in /etc/shells — add it with: sudo sh -c 'echo $zsh_path >> /etc/shells'"
+        fi
+    fi
+
+    echo ""
+    print_success "Setup complete! Run 'exec \$SHELL -l' to reload."
+}
+
+dotfiles_doctor() {
+    print_step "Running diagnostics"
+
+    local issues=0
+
     # Check shell
     if [[ "$SHELL" != *"zsh"* ]]; then
-        print_warning "Shell is not zsh"
-        ((issues++))
+        print_warning "Default shell is not zsh"
+        issues=$((issues + 1))
+    else
+        print_success "Shell: zsh"
     fi
-    
+
     # Check dotfiles symlink
-    if [[ ! -L "$HOME/.zshrc" ]] || [[ ! -e "$HOME/.zshrc" ]]; then
+    if [[ -L "$HOME/.zshrc" ]] && [[ -e "$HOME/.zshrc" ]]; then
+        print_success "zshrc linked"
+    else
         print_warning "zshrc not properly linked"
-        ((issues++))
+        issues=$((issues + 1))
     fi
-    
+
+    # Check Oh My Zsh
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        print_success "Oh My Zsh"
+    else
+        print_warning "Oh My Zsh not installed"
+        issues=$((issues + 1))
+    fi
+
+    # Check brew packages
+    printf "\n${BOLD}Brew packages:${RESET}\n"
+    local installed
+    installed=$(brew list --formula -1 2>/dev/null)
+    for pkg in "${BREW_PACKAGES[@]}"; do
+        if echo "$installed" | grep -qx "$pkg"; then
+            print_success "$pkg"
+        else
+            print_warning "Missing: $pkg"
+            issues=$((issues + 1))
+        fi
+    done
+
+    # Check Oh My Zsh plugins
+    printf "\n${BOLD}Oh My Zsh plugins:${RESET}\n"
+    for entry in "${OMZ_CUSTOM_PLUGINS[@]}"; do
+        local name="${entry%%|*}"
+        if [[ -d "$HOME/.oh-my-zsh/custom/plugins/$name" ]]; then
+            print_success "$name"
+        else
+            print_warning "Missing: $name"
+            issues=$((issues + 1))
+        fi
+    done
+
+    echo ""
     if [[ $issues -eq 0 ]]; then
         print_success "No issues found"
     else
-        print_error "Found $issues issues"
+        print_warning "Found $issues issue(s) — run 'dotfiles setup' to fix"
     fi
 }
 
@@ -159,7 +319,7 @@ dotfiles_clean() {
         if [[ -L "$dest" ]] && [[ ! -e "$dest" ]]; then
             rm "$dest"
             print_success "Removed broken symlink: $dest"
-            ((cleaned++))
+            cleaned=$((cleaned + 1))
         fi
     done < "$DOTFILES_DIR/config/mapping.cfg"
     
@@ -205,11 +365,12 @@ dotfiles_help() {
     echo "    dotfiles <command>"
     echo ""
     printf "${BOLD}COMMANDS:${RESET}\n"
+    echo "    setup     Install all dependencies (brew, oh-my-zsh, plugins)"
     echo "    edit      Open dotfiles in \$EDITOR"
     echo "    update    Pull latest changes and relink configurations"
     echo "    link      Link all configurations from mapping file"
     echo "    status    Show current dotfiles status"
-    echo "    doctor    Check for common issues"
+    echo "    doctor    Check for missing dependencies and issues"
     echo "    reload    Reload shell configuration"
     echo "    clean     Remove broken symlinks"
     echo "    sync      Commit and push changes"
@@ -221,6 +382,9 @@ dotfiles_help() {
 # =============================================================================
 
 case "${1:-help}" in
+    setup)
+        dotfiles_setup
+        ;;
     edit)
         dotfiles_edit
         ;;
