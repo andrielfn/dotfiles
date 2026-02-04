@@ -5,6 +5,11 @@
   "outline_panel": {
     "dock": "right"
   },
+  "sticky_scroll": {
+    "enabled": true
+  },
+  "preferred_line_length": 2000,
+  "soft_wrap": "editor_width",
   "colorize_brackets": false,
   "title_bar": {
     "show_menus": false,
@@ -26,16 +31,20 @@
   "edit_predictions": {
     "mode": "eager",
     "copilot": {
+      "enable_next_edit_suggestions": true,
       "proxy": null,
       "proxy_no_verify": null,
-      "enterprise_uri": null
+      "enterprise_uri": null,
     },
-    "enabled_in_text_threads": false
+    "enabled_in_text_threads": false,
   },
   "agent_servers": {
+    "github-copilot": {
+      "type": "registry"
+    },
     "claude": {
-      "default_mode": "acceptEdits"
-    }
+      "default_mode": "acceptEdits",
+    },
   },
   "tabs": {
     "close_position": "right",
@@ -72,21 +81,22 @@
     {
       "host": "192.168.0.10",
       "username": "andrielfn",
-      "projects": []
-    }
+      "projects": [],
+    },
   ],
   "scroll_beyond_last_line": "off",
   "features": {
-    "edit_prediction_provider": "copilot"
+    "edit_prediction_provider": "copilot",
   },
   "telemetry": {
-    "metrics": false
+    "metrics": false,
   },
   "agent": {
+    "use_modifier_to_send": true,
     "default_model": {
-      "provider": "anthropic",
-      "model": "claude-sonnet-4-latest"
-    }
+      "provider": "copilot_chat",
+      "model": "gpt-5-mini",
+    },
   },
   "wrap_guides": [
     120
@@ -96,12 +106,12 @@
   "buffer_font_size": 17,
   "tab_size": 2,
   "buffer_font_features": {
-    "calt": false
+    "calt": false,
   },
   "buffer_font_family": "Cascadia Code NF",
   "buffer_font_weight": 200,
   "buffer_line_height": {
-    "custom": 1.8
+    "custom": 1.8,
   },
   "languages": {
     "Elixir": {
@@ -142,6 +152,7 @@
     "**/_build",
     "**/deps",
     "**/.git",
+    "**/.claude",
     "**/.svn",
     "**/.hg",
     "**/CVS",
