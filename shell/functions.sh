@@ -15,31 +15,6 @@ fzf-git-checkout() {
 # PRODUCTIVITY FUNCTIONS
 # =============================================================================
 
-# System information
-sysinfo() {
-  echo "🖥️  System Information"
-  echo "==================="
-  echo "OS: $(uname -s)"
-  echo "Kernel: $(uname -r)"
-  echo "Architecture: $(uname -m)"
-  echo "Hostname: $(hostname)"
-  echo "Uptime: $(uptime | awk '{print $3,$4}' | sed 's/,//')"
-  echo "Memory: $(free -h | grep '^Mem:' | awk '{print $3 "/" $2}')"
-  echo "Disk: $(df -h / | tail -1 | awk '{print $3 "/" $2 " (" $5 ")"}')"
-  echo "CPU: $(sysctl -n machdep.cpu.brand_string)"
-  echo "Shell: $SHELL"
-  echo "Terminal: $TERM"
-
-  echo ""
-  echo "🔧 Development Tools"
-  echo "==================="
-  echo "Git: $(git --version)"
-  echo "Elixir: $(elixir --version | head -1)"
-  echo "Erlang: $(erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell)"
-  echo "Node.js: $(node --version 2>/dev/null || echo 'Not installed')"
-  echo "Docker: $(docker --version 2>/dev/null || echo 'Not installed')"
-}
-
 # Port management
 port-kill() {
   if [[ -z "$1" ]]; then
@@ -51,7 +26,15 @@ port-kill() {
   local pid=$(lsof -ti:$port)
 
   if [[ -n "$pid" ]]; then
-    kill -9 "$pid"
+    echo "Kill process $pid on port $port?"
+    read -q "confirm?[y/N] " || { echo; return 0; }
+    echo
+    kill "$pid" 2>/dev/null
+    sleep 1
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "Process did not terminate, sending SIGKILL..."
+      kill -9 "$pid"
+    fi
     echo "Process on port $port killed"
   else
     echo "No process found on port $port"
@@ -66,12 +49,51 @@ proc-kill() {
   fi
 
   local process_name="$1"
-  ps aux | grep "$process_name" | grep -v grep | fzf --height 40% --reverse | awk '{print $2}' | xargs kill -9
+  local selected
+  selected=$(ps aux | grep "$process_name" | grep -v grep | fzf --height 40% --reverse)
+  if [[ -z "$selected" ]]; then
+    return 0
+  fi
+
+  local pid
+  pid=$(echo "$selected" | awk '{print $2}')
+  echo "Kill process $pid? ($(echo "$selected" | awk '{print $11}'))"
+  read -q "confirm?[y/N] " || { echo; return 0; }
+  echo
+  kill "$pid" 2>/dev/null
+  sleep 1
+  if kill -0 "$pid" 2>/dev/null; then
+    echo "Process did not terminate, sending SIGKILL..."
+    kill -9 "$pid"
+  fi
+  echo "Process $pid killed"
 }
 
 # =============================================================================
 # FILE SYSTEM FUNCTIONS
 # =============================================================================
+
+# Extract any archive
+extract() {
+  if [ -f "$1" ]; then
+    case "$1" in
+    *.tar.bz2) tar xjf "$1" ;;
+    *.tar.gz) tar xzf "$1" ;;
+    *.bz2) bunzip2 "$1" ;;
+    *.rar) unrar x "$1" ;;
+    *.gz) gunzip "$1" ;;
+    *.tar) tar xf "$1" ;;
+    *.tbz2) tar xjf "$1" ;;
+    *.tgz) tar xzf "$1" ;;
+    *.zip) unzip "$1" ;;
+    *.Z) uncompress "$1" ;;
+    *.7z) 7z x "$1" ;;
+    *) echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
 
 # Create directory and cd into it
 mkcd() {
@@ -81,4 +103,24 @@ mkcd() {
   fi
 
   mkdir -p "$1" && cd "$1"
+}
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Weather function
+weather() {
+  curl -s "wttr.in/$1?format=3"
+}
+
+# System cleanup
+cleanup() {
+  echo "Cleaning up system..."
+  brew cleanup
+  brew autoremove
+  gem cleanup
+  mix deps.clean --unused
+  docker system prune -f
+  echo "System cleanup complete!"
 }

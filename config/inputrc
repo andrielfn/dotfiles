@@ -33,9 +33,6 @@ set convert-meta off
 # Use Alt/Meta + Delete to delete the preceding word
 "\e[3;3~": kill-word
 
-# Use Ctrl + D to kill whole line, no matter what's the cursor position.
-"\C-d": kill-whole-line
-
 set completion-map-case on
 set convert-meta off
 set expand-tilde on

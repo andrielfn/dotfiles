@@ -4,8 +4,12 @@
 # =============================================================================
 # Public environment variables that apply to both personal and work environments
 
-# Editor configuration
-export EDITOR="zed -w"
+# Editor configuration (use vim over SSH where zed isn't available)
+if [[ -n "$SSH_CONNECTION" ]]; then
+  export EDITOR="vim"
+else
+  export EDITOR="zed -w"
+fi
 export VISUAL="$EDITOR"
 
 # Shell history configuration
@@ -41,11 +45,16 @@ export FZF_DEFAULT_OPTS='
   --color=prompt:#7a3e9d,spinner:#9769dc,pointer:#9769dc,header:#85888c
   --color=selected-bg:#9769dc
   --color=label:#85888c,query:#5c6066
-  --preview-window="border-rounded" --prompt="❯ " --marker="❯" --pointer="▸"
-  --separator="━" --scrollbar="┃" --border="rounded"
-  --border-label="╢ FZF ╟" --border-label-pos="3:top"
-  --preview="bat --color=always --style=header,grid --line-range :300 {}"
+  --prompt="❯ " --marker="❯" --pointer="▸"
+  --separator="━" --scrollbar="┃"
 '
+export FZF_CTRL_T_OPTS='--preview="bat --color=always --style=header,grid --line-range :300 {}" --preview-window="border-rounded" --border="rounded"'
+export FZF_ALT_C_OPTS='--preview="eza --tree --level=2 --icons {}" --preview-window="border-rounded" --border="rounded"'
+export FZF_CTRL_R_OPTS='--preview="echo {}" --preview-window=down:3:wrap'
+
+# Forgit configuration (prefix aliases to avoid conflicts with git aliases)
+export FORGIT_ADD_FZF_OPTS='--preview-window=right:60%'
+export FORGIT_NO_ALIASES=true
 
 # Zoxide configuration
 export _ZO_DATA_DIR="$HOME/.local/share/zoxide"

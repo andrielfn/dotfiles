@@ -111,7 +111,7 @@ symbol = " "
 
 [elixir]
 symbol = " "
-disabled = true
+disabled = false
 
 [elm]
 symbol = " "
@@ -180,7 +180,7 @@ disabled = true
 
 [nodejs]
 symbol = " "
-disabled = true
+disabled = false
 
 [ocaml]
 symbol = " "

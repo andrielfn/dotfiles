@@ -10,13 +10,17 @@ export DOTFILES_DIR="$HOME/.dotfiles"
 # =============================================================================
 
 # Oh My Zsh theme
-ZSH_THEME="robbyrussell"
+ZSH_THEME=""
 ZOXIDE_CMD_OVERRIDE="cd"
 
 # Oh My Zsh plugins
 plugins=(
     git
     command-not-found
+    fzf-tab
+    forgit
+    zsh-autopair
+    you-should-use
     # zoxide
     zsh-autosuggestions
     zsh-syntax-highlighting
@@ -97,6 +101,18 @@ zstyle ':completion:*' cache-path ~/.zsh/cache
 # Git completion
 zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
 
+# fzf-tab configuration
+zstyle ':fzf-tab:*' fzf-flags --color=fg:-1,fg+:#9769dc,bg:-1,bg+:-1,hl:#9769dc,hl+:#9769dc,pointer:#9769dc,info:#85888c,prompt:#7a3e9d
+
+# fzf-tab previews: files/dirs, processes, env vars, git, ssh
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --tree --level=1 --icons --color=always $realpath'
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'if [[ -d $realpath ]]; then eza --tree --level=1 --icons --color=always $realpath; elif [[ -f $realpath ]]; then bat --color=always --style=header,grid --line-range :100 $realpath; fi'
+zstyle ':fzf-tab:complete:kill:argument-rest' fzf-preview 'ps -p $word -o pid,user,%cpu,%mem,stat,start,time,command 2>/dev/null'
+zstyle ':fzf-tab:complete:(export|unset):*' fzf-preview 'eval echo \$$word'
+zstyle ':fzf-tab:complete:ssh:*' fzf-preview 'ssh -G $word 2>/dev/null | grep -E "^(hostname|user|port|identityfile)" | head -5'
+zstyle ':fzf-tab:complete:git-(checkout|switch):*' fzf-preview 'git log --oneline --graph --color=always --max-count=10 $word 2>/dev/null'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git show --color=always --stat $word 2>/dev/null'
+
 # =============================================================================
 # KEY BINDINGS
 # =============================================================================
@@ -120,4 +136,3 @@ bindkey '^[^?' backward-kill-word
 if [[ -f "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
 fi
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

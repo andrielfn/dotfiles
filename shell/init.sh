@@ -66,7 +66,6 @@ init_shell() {
 
   if command -v mise &>/dev/null; then
     eval "$(mise activate zsh)"
-    eval "$(mise activate zsh --shims)"
   fi
 
   if command -v direnv &>/dev/null; then
@@ -77,10 +76,20 @@ init_shell() {
     [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
   fi
 
+  if command -v atuin &>/dev/null; then
+    eval "$(atuin init zsh)"
+  fi
+
+  # SSH agent — start if not running, load default keys with 4h timeout
+  if [[ -z "$SSH_AUTH_SOCK" ]]; then
+    eval "$(ssh-agent -s)" > /dev/null
+    ssh-add --apple-use-keychain -t 14400 ~/.ssh/id_ed25519 2>/dev/null
+  fi
+
   # Initialize 1Password CLI if enabled and available
-  # if [[ "$ENABLE_1PASSWORD_CLI" == "true" ]] && command -v op &>/dev/null; then
-  #   eval "$(op signin)"
-  # fi
+  if [[ "$ENABLE_1PASSWORD_CLI" == "true" ]] && command -v op &>/dev/null; then
+    eval "$(op signin)"
+  fi
 }
 
 # Run initialization

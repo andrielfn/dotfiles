@@ -55,6 +55,7 @@ erl_crash.dump
 *.beam
 .elixir_ls/
 .lexical/
+.dialyzer_plt/
 
 # Erlang
 .rebar3

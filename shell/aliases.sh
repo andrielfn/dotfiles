@@ -70,6 +70,17 @@ alias ghprc="gh pr checkout"
 alias ghprm="gh pr merge"
 alias ghrepo="gh repo view --web"
 
+# Forgit (fzf-powered git, FORGIT_NO_ALIASES=true so we define our own)
+alias fga="forgit::add"
+alias fgd="forgit::diff"
+alias fgl="forgit::log"
+alias fgr="forgit::rebase"
+alias fgs="forgit::stash::show"
+alias fgcf="forgit::fixup"
+alias fgcp="forgit::cherry::pick"
+alias fgco="forgit::checkout::branch"
+alias fgcl="forgit::clean"
+
 # =============================================================================
 # ELIXIR/PHOENIX ALIASES
 # =============================================================================
@@ -112,9 +123,9 @@ alias px="iex -S mix phx.server"
 # Elixir formatting and analysis
 alias mf="mix format"
 alias mfc="mix format --check-formatted"
-alias mc="mix credo"
-alias mcs="mix credo --strict"
-alias md="mix dialyzer"
+alias mcr="mix credo"
+alias mcrs="mix credo --strict"
+alias mdz="mix dialyzer"
 alias mps="mix phx.digest"
 
 # =============================================================================
@@ -148,7 +159,14 @@ alias genkey="openssl rand -hex 32 | pbcopy && echo 'Random key copied to clipbo
 alias fzf-files='fd --type f --hidden --follow --exclude .git | fzf --preview "bat --color=always --style=header,grid --line-range :300 {}"'
 alias fzf-dirs='fd --type d --hidden --follow --exclude .git | fzf --preview "eza --tree --level=2 --icons {}"'
 alias fzf-git='git log --oneline --graph --color=always | fzf --ansi --preview "git show --color=always {1}"'
-alias fzf-kill='ps aux | fzf --header-lines=1 | awk "{print \$2}" | xargs kill'
+alias fzf-kill='ps aux | fzf --header-lines=1 | awk "{print \$2}" | xargs -p kill'
+
+# Ansible
+alias ap="ansible-playbook"
+alias apv="ansible-playbook --ask-vault-pass"
+alias ave="ansible-vault encrypt"
+alias avd="ansible-vault decrypt"
+alias avv="ansible-vault view"
 
 # Docker (if used)
 alias d="docker"
@@ -158,44 +176,3 @@ alias dcdown="docker-compose down"
 alias dcb="docker-compose build"
 alias dcr="docker-compose run --rm"
 
-# =============================================================================
-# FUNCTIONS AS ALIASES
-# =============================================================================
-
-# Extract any archive
-extract() {
-  if [ -f "$1" ]; then
-    case "$1" in
-    *.tar.bz2) tar xjf "$1" ;;
-    *.tar.gz) tar xzf "$1" ;;
-    *.bz2) bunzip2 "$1" ;;
-    *.rar) unrar x "$1" ;;
-    *.gz) gunzip "$1" ;;
-    *.tar) tar xf "$1" ;;
-    *.tbz2) tar xjf "$1" ;;
-    *.tgz) tar xzf "$1" ;;
-    *.zip) unzip "$1" ;;
-    *.Z) uncompress "$1" ;;
-    *.7z) 7z x "$1" ;;
-    *) echo "'$1' cannot be extracted via extract()" ;;
-    esac
-  else
-    echo "'$1' is not a valid file"
-  fi
-}
-
-# Weather function
-weather() {
-  curl -s "wttr.in/$1?format=3"
-}
-
-# System cleanup
-cleanup() {
-  echo "Cleaning up system..."
-  brew cleanup
-  brew autoremove
-  gem cleanup
-  mix deps.clean --unused
-  docker system prune -f
-  echo "System cleanup complete!"
-}

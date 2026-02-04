@@ -14,11 +14,11 @@ export PATH="./bin:$PATH"
 # Mise configuration
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
-# PostgreSQL configuration (user-specific, often needs customization)
+# PostgreSQL configuration
 export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 
 # Setup PNPM
-export PNPM_HOME="/Users/andriel/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
 *":$PNPM_HOME:"*) ;;
 *) export PATH="$PNPM_HOME:$PATH" ;;
