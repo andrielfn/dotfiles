@@ -5,9 +5,6 @@
 # Simple environment variables have been moved to env/shared/env-shared
 
 # PATH configuration (depends on DOTFILES_DIR and has complex logic)
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.bin:$PATH"
-export PATH="$DOTFILES_DIR/bin:$PATH"
 export PATH="/usr/local/sbin:$PATH"
 export PATH="./bin:$PATH"
 
@@ -23,3 +20,8 @@ case ":$PATH:" in
 *":$PNPM_HOME:"*) ;;
 *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+
+# User-local paths take priority over everything above
+export PATH="$DOTFILES_DIR/bin:$PATH"
+export PATH="$HOME/.bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
