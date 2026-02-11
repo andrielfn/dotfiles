@@ -29,6 +29,7 @@
   "close_on_file_delete": true,
   "when_closing_with_no_tabs": "close_window",
   "edit_predictions": {
+    "provider": "copilot",
     "mode": "eager",
     "copilot": {
       "enable_next_edit_suggestions": true,

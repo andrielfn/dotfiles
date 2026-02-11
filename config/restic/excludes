@@ -1,0 +1,63 @@
+# =============================================================================
+# Restic backup exclusion patterns
+# =============================================================================
+
+# Elixir / Mix
+_build
+deps
+.elixir_ls
+.elixir-tools
+cover
+erl_crash.dump
+*.ez
+
+# Node / JavaScript
+node_modules
+dist
+.astro
+.next
+.nuxt
+.output
+.parcel-cache
+.turbo
+.svelte-kit
+
+# Build output
+build
+target
+*.beam
+*.o
+*.so
+*.dylib
+
+# IDE / Tools
+.claude
+.expert
+.vscode
+.idea
+.playwright-mcp
+*.swp
+*.swo
+
+# OS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Cache / temp
+.cache
+tmp
+coverage
+.nyc_output
+*.log
+logs
+
+# Other
+.terraform
+__pycache__
+*.pyc
+.venv
+venv
+.docker
+vendor

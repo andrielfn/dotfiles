@@ -36,6 +36,9 @@ brew "mise"
 brew "direnv"
 brew "ack"
 
+# Backup
+brew "restic"
+
 # Core applications
 cask "1password"
 cask "google-chrome"

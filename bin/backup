@@ -1,0 +1,260 @@
+#!/usr/bin/env bash
+
+# =============================================================================
+# RESTIC BACKUP TO BACKBLAZE B2
+# =============================================================================
+# Backs up ~/Code and ~/LastVolt to b2:andrielfn-code
+#
+# Required env vars (set in env/personal/env-secrets):
+#   CODE_BACKUP_B2_ACCOUNT_ID
+#   CODE_BACKUP_B2_ACCOUNT_KEY
+#   CODE_BACKUP_RESTIC_PASSWORD
+
+set -euo pipefail
+
+REPO="b2:andrielfn-code:"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+EXCLUDE_FILE="$DOTFILES_DIR/config/restic/excludes"
+LOG_DIR="$HOME/.local/share/restic"
+LOG_FILE="$LOG_DIR/backup.log"
+LOCK_FILE="$LOG_DIR/backup.pid"
+
+BACKUP_DIRS=(
+    "$HOME/Code"
+    "$HOME/LastVolt"
+)
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+setup_env() {
+    local missing=()
+    [[ -z "${CODE_BACKUP_B2_ACCOUNT_ID:-}" ]] && missing+=("CODE_BACKUP_B2_ACCOUNT_ID")
+    [[ -z "${CODE_BACKUP_B2_ACCOUNT_KEY:-}" ]] && missing+=("CODE_BACKUP_B2_ACCOUNT_KEY")
+    [[ -z "${CODE_BACKUP_RESTIC_PASSWORD:-}" ]] && missing+=("CODE_BACKUP_RESTIC_PASSWORD")
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "ERROR: Missing env vars: ${missing[*]}" >&2
+        echo "Set them in env/personal/env-secrets" >&2
+        exit 1
+    fi
+
+    export B2_ACCOUNT_ID="$CODE_BACKUP_B2_ACCOUNT_ID"
+    export B2_ACCOUNT_KEY="$CODE_BACKUP_B2_ACCOUNT_KEY"
+    export RESTIC_PASSWORD="$CODE_BACKUP_RESTIC_PASSWORD"
+
+    mkdir -p "$LOG_DIR"
+}
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+acquire_lock() {
+    if [[ -f "$LOCK_FILE" ]]; then
+        local pid
+        pid=$(cat "$LOCK_FILE")
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "ERROR: Backup already running (PID $pid)" >&2
+            exit 1
+        fi
+        rm -f "$LOCK_FILE"
+    fi
+    echo $$ > "$LOCK_FILE"
+}
+
+release_lock() {
+    rm -f "$LOCK_FILE"
+}
+
+repo_exists() {
+    restic -r "$REPO" snapshots --latest 1 &>/dev/null
+}
+
+# =============================================================================
+# COMMANDS
+# =============================================================================
+
+cmd_init() {
+    setup_env
+    log "Initializing repo at $REPO"
+    restic -r "$REPO" init
+    log "Repo initialized"
+}
+
+cmd_backup() {
+    setup_env
+    acquire_lock
+    trap release_lock EXIT
+
+    # Auto-initialize if repo doesn't exist
+    if ! repo_exists; then
+        log "Repo not found, initializing..."
+        restic -r "$REPO" init
+    fi
+
+    local dirs=()
+    for d in "${BACKUP_DIRS[@]}"; do
+        if [[ -d "$d" ]]; then
+            dirs+=("$d")
+        else
+            log "SKIP: $d does not exist"
+        fi
+    done
+
+    if [[ ${#dirs[@]} -eq 0 ]]; then
+        log "ERROR: No backup directories found"
+        exit 1
+    fi
+
+    log "Starting backup: ${dirs[*]}"
+    restic -r "$REPO" backup \
+        --exclude-file="$EXCLUDE_FILE" \
+        --verbose \
+        "${dirs[@]}" 2>&1 | tee -a "$LOG_FILE"
+    log "Backup complete"
+}
+
+cmd_prune() {
+    setup_env
+    log "Pruning snapshots"
+    restic -r "$REPO" forget \
+        --keep-hourly 24 \
+        --keep-daily 7 \
+        --keep-weekly 4 \
+        --keep-monthly 6 \
+        --prune 2>&1 | tee -a "$LOG_FILE"
+    log "Prune complete"
+}
+
+cmd_check() {
+    setup_env
+    log "Checking repo integrity"
+    restic -r "$REPO" check 2>&1 | tee -a "$LOG_FILE"
+    log "Check complete"
+}
+
+cmd_snapshots() {
+    setup_env
+    restic -r "$REPO" snapshots
+}
+
+cmd_ls() {
+    setup_env
+    local snapshot="${2:-latest}"
+    shift 2 2>/dev/null || shift $# 2>/dev/null
+    restic -r "$REPO" ls "$snapshot" "$@"
+}
+
+cmd_status() {
+    echo "=== Last backup log ==="
+    if [[ -f "$LOG_FILE" ]]; then
+        tail -20 "$LOG_FILE"
+    else
+        echo "No log file found"
+    fi
+
+    echo ""
+    echo "=== Repo stats ==="
+    if [[ -n "${CODE_BACKUP_B2_ACCOUNT_ID:-}" ]]; then
+        setup_env
+        restic -r "$REPO" stats --mode raw-data 2>/dev/null || echo "Could not reach repo"
+    else
+        echo "Env vars not set — can't query repo"
+    fi
+}
+
+cmd_restore() {
+    setup_env
+    shift # remove "restore" from args
+
+    local target="$HOME"
+    local snapshot="latest"
+    local include=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --target)  target="$2"; shift 2 ;;
+            --include) include="$2"; shift 2 ;;
+            --snap)    snapshot="$2"; shift 2 ;;
+            *)
+                echo "Unknown option: $1" >&2
+                echo "Usage: backup restore [--target dir] [--include path] [--snap id]" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    local args=(restore "$snapshot" --target "$target")
+    [[ -n "$include" ]] && args+=(--include "$include")
+
+    echo "Restoring snapshot '$snapshot' to $target${include:+ (include: $include)}"
+    restic -r "$REPO" "${args[@]}"
+    echo "Restore complete"
+}
+
+cmd_unlock() {
+    setup_env
+    log "Removing stale locks"
+    restic -r "$REPO" unlock
+    log "Unlock complete"
+}
+
+cmd_help() {
+    cat <<'EOF'
+backup - Restic backup to Backblaze B2
+
+USAGE:
+    backup <command>
+
+COMMANDS:
+    backup      Run incremental backup (default)
+    init        Initialize restic repo on B2
+    prune       Apply retention policy
+    check       Verify repo integrity
+    snapshots   List snapshots
+    ls          List files in snapshot (backup ls [snapshot] [path])
+    restore     Restore snapshot (--target dir --include path --snap id)
+    status      Show last log + repo stats
+    unlock      Remove stale locks
+    help        Show this help message
+
+EXAMPLES:
+    backup                  Run incremental backup
+    backup snapshots        List all snapshots
+    backup ls               List files in latest snapshot
+    backup ls latest ~/Code Browse a specific path
+    backup restore          Restore everything to ~/
+    backup restore --include ~/Code/myapp --target /tmp/restore
+    backup restore --snap 14346f37 --target ~/recover
+    backup prune            Clean old snapshots (24h/7d/4w/6m)
+
+ENVIRONMENT:
+    CODE_BACKUP_B2_ACCOUNT_ID      Backblaze B2 application key ID
+    CODE_BACKUP_B2_ACCOUNT_KEY     Backblaze B2 application key
+    CODE_BACKUP_RESTIC_PASSWORD    Restic repository password
+EOF
+}
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+case "${1:-backup}" in
+    backup)     cmd_backup ;;
+    init)       cmd_init ;;
+    prune)      cmd_prune ;;
+    check)      cmd_check ;;
+    snapshots)  cmd_snapshots ;;
+    ls)         cmd_ls "$@" ;;
+    restore)    cmd_restore "$@" ;;
+    status)     cmd_status ;;
+    unlock)     cmd_unlock ;;
+    help|--help|-h) cmd_help ;;
+    *)
+        echo "Unknown command: $1" >&2
+        cmd_help
+        exit 1
+        ;;
+esac

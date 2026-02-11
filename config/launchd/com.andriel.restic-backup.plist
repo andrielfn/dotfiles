@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.andriel.restic-backup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>
+            source /Users/andriel/.dotfiles/env/shared/env-shared 2>/dev/null;
+            source /Users/andriel/.dotfiles/env/shared/env-secrets 2>/dev/null;
+            source /Users/andriel/.dotfiles/env/personal/env-personal 2>/dev/null;
+            source /Users/andriel/.dotfiles/env/personal/env-secrets 2>/dev/null;
+            /Users/andriel/.dotfiles/bin/backup backup
+        </string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>13</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>18</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+
+    <key>Nice</key>
+    <integer>10</integer>
+
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>StandardOutPath</key>
+    <string>/Users/andriel/.local/share/restic/launchd-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/andriel/.local/share/restic/launchd-stderr.log</string>
+</dict>
+</plist>
