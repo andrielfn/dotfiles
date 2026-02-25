@@ -77,7 +77,7 @@ init_shell() {
   fi
 
   if command -v atuin &>/dev/null; then
-    eval "$(atuin init zsh)"
+    eval "$(atuin init zsh --disable-up-arrow)"
   fi
 
   # SSH agent — start if not running, load default keys with 4h timeout
