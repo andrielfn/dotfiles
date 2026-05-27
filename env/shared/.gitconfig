@@ -44,7 +44,6 @@ colorMoved = default
 algorithm = patience
 
 [commit]
-template = ~/.gitmessage
 gpgsign = true
 
 [status]
@@ -129,3 +128,5 @@ path = ~/.gitconfig-personal
 
 [includeIf "gitdir:~/Work/"]
 path = ~/.gitconfig-work
+[url "git@github.com:"]
+	insteadOf = https://github.com/
