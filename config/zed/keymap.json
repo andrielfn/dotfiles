@@ -35,13 +35,7 @@
     }
   },
   {
-    "context": "Workspace",
-    "bindings": {
-      "cmd-shift-g": "git_panel::ToggleFocus"
-    }
-  },
-  {
-    "context": "!ContextEditor > Editor && mode == full",
+    "context": "!AcpThread > Editor && mode == full",
     "use_key_equivalents": true,
     "bindings": {
       "cmd-i": "assistant::InlineAssist"
@@ -73,15 +67,33 @@
     }
   },
   {
-    "context": "ContextEditor > Editor",
+    "context": "Workspace",
     "bindings": {
       "cmd-shift-g": "git_panel::ToggleFocus"
     }
   },
   {
-    "context": "Pane",
+    "context": "GitPanel",
     "bindings": {
-      "cmd-shift-g": "git_panel::ToggleFocus"
+      "cmd-shift-g": "workspace::ToggleRightDock"
+    }
+  },
+  {
+    "context": "OutlinePanel",
+    "bindings": {
+      "cmd-shift-b": "workspace::ToggleRightDock"
+    }
+  },
+  {
+    "context": "AgentPanel",
+    "bindings": {
+      "cmd-?": "workspace::ToggleRightDock"
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-shift-g": "git_panel::ToggleFocus"
     }
   }
 ]
