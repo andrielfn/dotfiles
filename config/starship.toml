@@ -1,271 +1,113 @@
-# format = """
-# $username\
-# $hostname\
-# $localip\
-# $shlvl\
-# $singularity\
-# $directory\
-# $vcsh\
-# $git_branch\
-# $git_commit\
-# $git_state\
-# $git_metrics\
-# $git_status\
-# $kubernetes\
-# $hg_branch\
-# $docker_context\
-# $package\
-# $c\
-# $cmake\
-# $cobol\
-# $daml\
-# $dart\
-# $deno\
-# $dotnet\
-# $elixir\
-# $elm\
-# $erlang\
-# $golang\
-# $haskell\
-# $helm\
-# $java\
-# $julia\
-# $kotlin\
-# $lua\
-# $nim\
-# $nodejs\
-# $ocaml\
-# $perl\
-# $php\
-# $pulumi\
-# $purescript\
-# $python\
-# $raku\
-# $rlang\
-# $red\
-# $ruby\
-# $rust\
-# $scala\
-# $swift\
-# $terraform\
-# $vlang\
-# $vagrant\
-# $zig\
-# $buf\
-# $nix_shell\
-# $conda\
-# $spack\
-# $memory_usage\
-# $aws\
-# $gcloud\
-# $openstack\
-# $azure\
-# $env_var\
-# $crystal\
-# $custom\
-# $sudo\
-# $cmd_duration\
-# $line_break\
-# $jobs\
-# $battery\
-# $time\
-# $status\
-# $container\
-# $shell\
-# $character"""
+palette = "main"
+
+format = """$directory$git_branch$git_status$elixir$erlang$nodejs$rust$golang$python$ruby$lua$java$kotlin$c$swift$zig$line_break$character"""
+
+right_format = """$cmd_duration"""
+
+[palettes.main]
+dir = "#286983"
+git = "#56949f"
+git_status = "#b4637a"
+lang = "#907aa9"
+sep = "#9893a5"
+info = "#797593"
 
 [character]
-disabled = false
 success_symbol = '[➜](fg:green)'
 error_symbol = '[✗](fg:red)'
 
-[aws]
-symbol = "  "
-disabled = true
-
-
-[buf]
-symbol = " "
-disabled = true
-
-[c]
-symbol = " "
-
-[cmake]
-symbol = " "
-
-[conda]
-symbol = " "
-
-[crystal]
-symbol = " "
-
-[dart]
-symbol = " "
-
 [directory]
+format = '[$path$read_only](fg:dir)[  ](fg:sep)'
 read_only = " 󰌾"
-
-[docker_context]
-symbol = " "
-
-[elixir]
-symbol = " "
-disabled = false
-
-[elm]
-symbol = " "
-
-[fennel]
-symbol = " "
-
-[fossil_branch]
-symbol = " "
-
+truncation_length = 3
+truncate_to_repo = true
 
 [git_branch]
-symbol = " "
-
-[git_commit]
-tag_symbol = '  '
+format = '[$symbol$branch](fg:git)'
+symbol = " "
 
 [git_status]
+format = '[ $all_status$ahead_behind](fg:git_status)[  ](fg:sep)'
 ahead = '⇡${count}'
 diverged = '⇕⇡${ahead_count}⇣${behind_count}'
 behind = '⇣${count}'
 
-[golang]
-symbol = " "
+[git_commit]
+tag_symbol = '  '
 
-[guix_shell]
-symbol = " "
+[elixir]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
 
-[haskell]
-symbol = " "
-
-[haxe]
-symbol = " "
-
-[hg_branch]
-symbol = " "
-
-[hostname]
-ssh_symbol = " "
-
-[java]
-symbol = " "
-
-[julia]
-symbol = " "
-disabled = true
-
-[kotlin]
-symbol = " "
-
-[lua]
-symbol = " "
-
-[memory_usage]
-symbol = "󰍛 "
-
-[meson]
-symbol = "󰔷 "
-
-[nim]
-symbol = "󰆥 "
-
-[nix_shell]
-symbol = " "
-disabled = true
+[erlang]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
 
 [nodejs]
+format = '[$symbol$version](fg:lang)'
 symbol = " "
-disabled = false
-
-[ocaml]
-symbol = " "
-
-[os.symbols]
-Alpaquita = " "
-Alpine = " "
-AlmaLinux = " "
-Amazon = " "
-Android = " "
-Arch = " "
-Artix = " "
-CachyOS = " "
-CentOS = " "
-Debian = " "
-DragonFly = " "
-Emscripten = " "
-EndeavourOS = " "
-Fedora = " "
-FreeBSD = " "
-Garuda = "󰛓 "
-Gentoo = " "
-HardenedBSD = "󰞌 "
-Illumos = "󰈸 "
-Kali = " "
-Linux = " "
-Mabox = " "
-Macos = " "
-Manjaro = " "
-Mariner = " "
-MidnightBSD = " "
-Mint = " "
-NetBSD = " "
-NixOS = " "
-Nobara = " "
-OpenBSD = "󰈺 "
-openSUSE = " "
-OracleLinux = "󰌷 "
-Pop = " "
-Raspbian = " "
-Redhat = " "
-RedHatEnterprise = " "
-RockyLinux = " "
-Redox = "󰀘 "
-Solus = "󰠳 "
-SUSE = " "
-Ubuntu = " "
-Unknown = " "
-Void = " "
-Windows = "󰍲 "
-
-[package]
-symbol = "󰏗 "
-disabled = true
-
-[perl]
-symbol = " "
-
-[php]
-symbol = " "
-
-[pijul_channel]
-symbol = " "
-
-[python]
-symbol = " "
-disabled = true
-
-[rlang]
-symbol = "󰟔 "
-
-[ruby]
-symbol = " "
 
 [rust]
+format = '[$symbol$version](fg:lang)'
 symbol = "󱘗 "
 
-[scala]
-symbol = " "
+[golang]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[python]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[ruby]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[lua]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[java]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[kotlin]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
+
+[c]
+format = '[$symbol$version](fg:lang)'
+symbol = " "
 
 [swift]
+format = '[$symbol$version](fg:lang)'
 symbol = " "
 
 [zig]
+format = '[$symbol$version](fg:lang)'
 symbol = " "
 
-[gradle]
-symbol = " "
+[cmd_duration]
+format = '[󰔟 $duration](fg:info)'
+min_time = 2_000
+
+[aws]
+disabled = true
+
+[buf]
+disabled = true
+
+[package]
+disabled = true
+
+[julia]
+disabled = true
+
+[nix_shell]
+disabled = true
+
+[docker_context]
+symbol = " "
+
+[hostname]
+ssh_symbol = " "
