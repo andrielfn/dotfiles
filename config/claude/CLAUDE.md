@@ -232,3 +232,22 @@ A task is done when:
 - Risky changes have a rollback/flag strategy (when applicable).
 - The code follows existing conventions and is readable.
 - A short verification story exists: "what changed + how we know it works."
+
+---
+
+## LiveView Change Tracking (Phoenix/Elixir)
+
+### `{assigns}` splatting disables ALL change tracking
+- `<.component {assigns}>` sets `__changed__: nil` in the LiveView engine, forcing a full re-render of that component and all its children
+- Fix: always pass explicit props `<.component prop1={@prop1} prop2={@prop2} />`
+- This applies to any HEEx template — app layouts, component libraries, etc.
+
+### Raw assigns access in templates breaks tracking
+- `Map.get(assigns, :key, default)` or `assigns[:key]` in HEEx templates defeats change tracking
+- Fix: declare `attr :key, :type, default: value` and use `@key` syntax
+
+### Comprehension change tracking is assign-level
+- `:for` comprehensions that access a changed assign re-render ALL items, even if only one item's data changed
+- LiveView tracks which `@assigns` a comprehension references, not the computed results
+- Fix: split large shared data structures into per-item assigns and render items explicitly (no `:for`)
+- `Phoenix.Component.assign/3` uses structural equality — unchanged items won't be marked dirty

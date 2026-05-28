@@ -54,6 +54,7 @@ erl_crash.dump
 .elixir_ls/
 .lexical/
 .dialyzer_plt/
+.dexter*
 
 # Erlang
 .rebar3
@@ -116,3 +117,6 @@ coverage/
 INFOS/
 .claude
 bin/op*
+
+**/.claude/settings.local.json
+.playwright-mcp/
