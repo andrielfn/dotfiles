@@ -17,9 +17,33 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_DIR="$SCRIPT_DIR"
 
+# Source utilities first so show_usage/print_error are available during arg parsing
+source "$SCRIPT_DIR/scripts/utils.sh"
+
+show_usage() {
+  cat << EOF
+Usage: $0 [OPTIONS]
+
+Setup dotfiles with machine-specific configuration.
+
+OPTIONS:
+  --machine-type=TYPE     Set machine type (personal|work) [default: personal]
+  --work-dir=DIR          Set work directory name [default: Work]
+  --full                  Run the full setup non-interactively (skip the menu)
+  --help, -h              Show this help message
+
+EXAMPLES:
+  $0                                    # Interactive menu
+  $0 --full                             # Full setup without the menu
+  $0 --machine-type=work                # Work machine with ~/Work directory
+  $0 --machine-type=work --work-dir=Company  # Work machine with ~/Company directory
+EOF
+}
+
 # Default configuration
 MACHINE_TYPE="personal"
 WORK_DIR="Work"
+RUN_FULL="false"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -30,6 +54,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --work-dir=*)
       WORK_DIR="${1#*=}"
+      shift
+      ;;
+    --full)
+      RUN_FULL="true"
       shift
       ;;
     --help|-h)
@@ -43,35 +71,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-# Source utilities
-source "$SCRIPT_DIR/scripts/utils.sh"
-
-# =============================================================================
-# USAGE AND HELP
-# =============================================================================
-
-show_usage() {
-  cat << EOF
-Usage: $0 [OPTIONS]
-
-Setup dotfiles with machine-specific configuration.
-
-OPTIONS:
-  --machine-type=TYPE     Set machine type (personal|work) [default: personal]
-  --work-dir=DIR          Set work directory name [default: Work]
-  --help, -h              Show this help message
-
-EXAMPLES:
-  $0                                    # Personal machine setup
-  $0 --machine-type=work                # Work machine with ~/Work directory
-  $0 --machine-type=work --work-dir=Company  # Work machine with ~/Company directory
-
-MACHINE TYPES:
-  personal    Default setup with ~/Code directory for projects
-  work        Work setup with work directory for environment detection
-EOF
-}
 
 # =============================================================================
 # MACHINE SETUP FUNCTIONS
@@ -108,35 +107,17 @@ setup_personal_machine() {
 
 setup_work_machine() {
   print_step "Configuring work machine"
-  
+
   # Create work directory for work projects
   mkdir -p "$HOME/$WORK_DIR"
   print_success "Created ~/$WORK_DIR directory for work projects"
-  
-  # Update environment detection function to use custom work directory
-  update_environment_detection
-  
-  print_success "Work machine configuration complete"
-}
 
-update_environment_detection() {
   if [[ "$WORK_DIR" != "Work" ]]; then
-    print_step "Updating environment detection for custom work directory: $WORK_DIR"
-    
-    # Update the detect_environment function in init.sh
-    local init_file="$DOTFILES_DIR/shell/init.sh"
-    
-    # Create a backup
-    cp "$init_file" "$init_file.backup"
-    
-    # Update the function to check for custom work directory
-    sed -i.tmp "s/\[\[ -d \"\$HOME\/Work\" \]\] || \[\[ -d \"\$HOME\/work\" \]\]/[[ -d \"\$HOME\/$WORK_DIR\" ]] || [[ -d \"\$HOME\/work\" ]] || [[ -d \"\$HOME\/Work\" ]]/" "$init_file"
-    
-    # Remove temp file
-    rm "$init_file.tmp"
-    
-    print_success "Updated environment detection for ~/$WORK_DIR"
+    print_warning "Custom work dir ~/$WORK_DIR: git's work identity applies under ~/Work/ only"
+    print_info "Add an includeIf for ~/$WORK_DIR/ in config/git/gitconfig if needed."
   fi
+
+  print_success "Work machine configuration complete"
 }
 
 # =============================================================================
@@ -221,7 +202,17 @@ install_full_setup() {
     run_installer "macos" "🖥️  Configuring macOS settings"
   fi
 
-  setup_git_configuration
+  # Git configs (gitconfig, identities, allowed_signers) are linked by the
+  # mapping system via the shell installer — no separate step needed.
+
+  # 1Password bootstrap (setup-time only): SSH key, secrets, GitHub key registration
+  ask_for_confirmation "Set up SSH key, secrets, and commit signing from 1Password?"
+  if answer_is_yes; then
+    run_installer "ssh" "🔑 Materializing SSH key from 1Password"
+    run_installer "secrets" "🔐 Injecting secrets from 1Password"
+    run_installer "git-signing" "✍️  Registering signing key on GitHub"
+  fi
+
   migrate_bin_scripts
   create_useful_directories
 
@@ -277,37 +268,6 @@ run_installer() {
   fi
 }
 
-setup_git_configuration() {
-  print_header "🔧 Setting up Git Configuration"
-
-  # Link shared git configuration
-  create_symlink "$DOTFILES_DIR/env/shared/.gitconfig" "$HOME/.gitconfig"
-
-  # Always link personal git config (used for ~/Code/ directory)
-  if [[ -f "$DOTFILES_DIR/env/personal/.gitconfig-personal" ]]; then
-    create_symlink "$DOTFILES_DIR/env/personal/.gitconfig-personal" "$HOME/.gitconfig-personal"
-    print_success "Personal git config linked"
-  else
-    print_warning "Personal git config not found at $DOTFILES_DIR/env/personal/.gitconfig-personal"
-  fi
-
-  # Only link work git config if we're on a work machine (used for ~/Work/ directory)
-  local env=$(detect_environment)
-  if [[ "$env" == "work" ]]; then
-    if [[ -f "$DOTFILES_DIR/env/work/.gitconfig-work" ]]; then
-      create_symlink "$DOTFILES_DIR/env/work/.gitconfig-work" "$HOME/.gitconfig-work"
-      print_success "Work git config linked"
-    else
-      print_warning "Work git config not found at $DOTFILES_DIR/env/work/.gitconfig-work"
-    fi
-  else
-    print_info "Skipping work git config (not on a work machine)"
-  fi
-
-  # Note: gitignore and gitmessage are now handled by the centralized config system
-  print_success "Git configuration complete"
-}
-
 migrate_bin_scripts() {
   print_header "🔧 Migrating Binary Scripts"
 
@@ -332,8 +292,9 @@ create_useful_directories() {
   print_header "📁 Creating Useful Directories"
 
   # Create development directories
+  # Note: ~/Work is created only on work machines (setup_work_machine), not here —
+  # the work git identity (empty email) applies via includeIf in ~/Work/.
   mkdir -p "$HOME/Code"
-  mkdir -p "$HOME/Work"
   mkdir -p "$HOME/Screenshots"
 
   # Create .local structure
@@ -382,8 +343,12 @@ main() {
   # Check prerequisites
   check_prerequisites
 
-  # Show installation menu
-  show_installation_menu
+  # Non-interactive full setup (used by bootstrap.sh), else interactive menu
+  if [[ "$RUN_FULL" == "true" ]]; then
+    install_full_setup
+  else
+    show_installation_menu
+  fi
 }
 
 # Run main function if script is executed directly

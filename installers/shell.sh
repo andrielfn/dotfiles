@@ -125,12 +125,18 @@ setup_fzf() {
   print_in_yellow "=> Setting up FZF (fuzzy finder)..."
 
   install_via_brew "fzf"
-
-  # Install FZF key bindings and completion
   ensure_brew_in_path
-  local fzf_install_script="$(brew --prefix)/opt/fzf/install"
-  if [[ -f "$fzf_install_script" ]]; then
-    yes | "$fzf_install_script"
+
+  # Generate ~/.fzf.zsh once, WITHOUT touching rc files. init.sh already sources
+  # ~/.fzf.zsh, and ~/.zshrc is a symlink to the tracked config/zshrc — letting
+  # fzf's installer update rc would append to (and dirty) that tracked file.
+  if [[ ! -f "$HOME/.fzf.zsh" ]]; then
+    local fzf_install_script="$(brew --prefix)/opt/fzf/install"
+    if [[ -f "$fzf_install_script" ]]; then
+      "$fzf_install_script" --key-bindings --completion --no-update-rc
+    fi
+  else
+    print_success "FZF already configured (~/.fzf.zsh present)"
   fi
 
   print_success "FZF setup complete"

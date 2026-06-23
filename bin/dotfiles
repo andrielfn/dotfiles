@@ -21,34 +21,20 @@ popd > /dev/null
 # DEPENDENCY DEFINITIONS (single source of truth)
 # =============================================================================
 
-# Homebrew packages required by dotfiles
-BREW_PACKAGES=(
-    # Modern CLI replacements
-    eza           # ls replacement
-    bat           # cat replacement
-    fd            # find replacement
-    ripgrep       # grep replacement
-    fzf           # fuzzy finder
-    ncdu          # du replacement
-    htop          # top replacement
-    duf           # df replacement
-    prettyping    # ping replacement
-    trash         # safe rm
+# Homebrew packages are defined in a single Brewfile (source of truth):
+#   ./Brewfile (repo root)
+BREWFILE="$DOTFILES_DIR/Brewfile"
 
-    # Shell & prompt
-    starship      # prompt
-    zoxide        # cd replacement
-    atuin         # shell history
-    direnv        # env per directory
-
-    # Development
-    mise          # tool version manager
-    gh            # GitHub CLI
-
-    # Security
-    gnupg         # GPG
-    pinentry-mac  # GPG pinentry for macOS
-)
+# Emit each mapping destination (tilde-expanded), one per line. Single source
+# of truth for the symlink loops in status/doctor/clean.
+mapping_dests() {
+    local src dest
+    while IFS=: read -r src dest; do
+        [[ "$src" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$src" ]] && continue
+        printf '%s\n' "${dest/#\~/$HOME}"
+    done < "$DOTFILES_DIR/config/mapping.cfg"
+}
 
 # Oh My Zsh custom plugins: "name|repo_url"
 OMZ_CUSTOM_PLUGINS=(
@@ -97,24 +83,16 @@ dotfiles_status() {
     
     # Check for broken symlinks
     printf "\n${BOLD}Checking symlinks:${RESET}\n"
-    local broken_links=0
-    while IFS=: read -r source dest; do
-        # Skip comments and empty lines
-        [[ "$source" =~ ^#.*$ ]] || [[ -z "$source" ]] && continue
-        
-        # Expand tilde in destination
-        dest="${dest/#\~/$HOME}"
-        
-        if [[ -L "$dest" ]]; then
-            if [[ ! -e "$dest" ]]; then
-                print_error "Broken: $dest"
-                broken_links=$((broken_links + 1))
-            fi
+    local broken_links=0 dest
+    while IFS= read -r dest; do
+        if [[ -L "$dest" && ! -e "$dest" ]]; then
+            print_error "Broken: $dest"
+            broken_links=$((broken_links + 1))
         elif [[ ! -e "$dest" ]]; then
             print_warning "Missing: $dest"
         fi
-    done < "$DOTFILES_DIR/config/mapping.cfg"
-    
+    done < <(mapping_dests)
+
     if [[ $broken_links -eq 0 ]]; then
         print_success "All symlinks healthy"
     fi
@@ -147,33 +125,20 @@ dotfiles_setup() {
         print_success "Homebrew already installed"
     fi
 
-    # 2. Brew packages
+    # 2. Brew packages (from ./Brewfile — single source of truth)
     print_step "Installing brew packages"
-    local installed
-    installed=$(brew list --formula -1 2>/dev/null)
-    local to_install=()
+    brew bundle --file="$BREWFILE" || print_warning "Some packages failed to install"
 
-    for pkg in "${BREW_PACKAGES[@]}"; do
-        if echo "$installed" | grep -qx "$pkg"; then
-            print_success "$pkg"
-        else
-            to_install+=("$pkg")
-        fi
-    done
+    # 3. Link configurations (mise reads ~/.config/mise/config.toml — link first)
+    dotfiles_link
 
-    if [[ ${#to_install[@]} -gt 0 ]]; then
-        print_info "Installing: ${to_install[*]}"
-        brew install "${to_install[@]}"
-        for pkg in "${to_install[@]}"; do
-            if command -v "$pkg" &>/dev/null || brew list "$pkg" &>/dev/null; then
-                print_success "$pkg installed"
-            else
-                print_error "Failed to install $pkg"
-            fi
-        done
+    # 4. Mise tools (runtimes + dev CLIs from config/mise/config.toml)
+    if command -v mise &>/dev/null; then
+        print_step "Installing mise tools"
+        mise install || print_warning "Some mise tools failed to install"
     fi
 
-    # 3. Oh My Zsh
+    # 5. Oh My Zsh
     print_step "Checking Oh My Zsh"
     if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
         print_info "Installing Oh My Zsh..."
@@ -183,7 +148,7 @@ dotfiles_setup() {
         print_success "Oh My Zsh already installed"
     fi
 
-    # 4. Custom plugins
+    # 6. Custom plugins
     print_step "Checking Oh My Zsh plugins"
     local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
     mkdir -p "$plugins_dir"
@@ -204,10 +169,7 @@ dotfiles_setup() {
         fi
     done
 
-    # 5. Link configurations
-    dotfiles_link
-
-    # 6. Set default shell to zsh if needed
+    # 7. Set default shell to zsh if needed
     if [[ "$SHELL" != *"zsh"* ]]; then
         print_info "Setting default shell to zsh..."
         local zsh_path
@@ -222,6 +184,18 @@ dotfiles_setup() {
 
     echo ""
     print_success "Setup complete! Run 'exec \$SHELL -l' to reload."
+}
+
+dotfiles_ssh() {
+    bash "$DOTFILES_DIR/installers/ssh.sh"
+}
+
+dotfiles_secrets() {
+    bash "$DOTFILES_DIR/installers/secrets.sh"
+}
+
+dotfiles_signing() {
+    bash "$DOTFILES_DIR/installers/git-signing.sh"
 }
 
 dotfiles_doctor() {
@@ -253,18 +227,47 @@ dotfiles_doctor() {
         issues=$((issues + 1))
     fi
 
-    # Check brew packages
+    # Check brew packages (against ./Brewfile)
     printf "\n${BOLD}Brew packages:${RESET}\n"
-    local installed
-    installed=$(brew list --formula -1 2>/dev/null)
-    for pkg in "${BREW_PACKAGES[@]}"; do
-        if echo "$installed" | grep -qx "$pkg"; then
-            print_success "$pkg"
-        else
-            print_warning "Missing: $pkg"
+    if brew bundle check --file="$BREWFILE" >/dev/null 2>&1; then
+        print_success "Brewfile satisfied"
+    else
+        print_warning "Brewfile has missing entries (run 'dotfiles setup'):"
+        { brew bundle check --file="$BREWFILE" --verbose 2>/dev/null \
+            | grep -iE 'needs to be installed' | sed 's/^/    /'; } || true
+        issues=$((issues + 1))
+    fi
+
+    # Drift: top-level packages installed but NOT in the Brewfile
+    printf "\n${BOLD}Untracked packages (installed, not in Brewfile):${RESET}\n"
+    local extra_formulae extra_casks
+    extra_formulae=$(comm -23 \
+        <(brew leaves -r 2>/dev/null | sort -u) \
+        <(brew bundle list --formula --file="$BREWFILE" 2>/dev/null | sort -u) || true)
+    extra_casks=$(comm -23 \
+        <(brew list --cask 2>/dev/null | sort -u) \
+        <(brew bundle list --cask --file="$BREWFILE" 2>/dev/null | sort -u) || true)
+    if [[ -z "$extra_formulae" && -z "$extra_casks" ]]; then
+        print_success "None — machine matches Brewfile"
+    else
+        [[ -n "$extra_formulae" ]] && { printf "  formulae:\n"; printf '%s\n' "$extra_formulae" | sed 's/^/    /'; }
+        [[ -n "$extra_casks" ]] && { printf "  casks:\n"; printf '%s\n' "$extra_casks" | sed 's/^/    /'; }
+        print_info "Adopt: add to Brewfile  |  Remove: brew bundle cleanup --force --file=$BREWFILE"
+    fi
+
+    # Check mise tools
+    printf "\n${BOLD}Mise tools:${RESET}\n"
+    if command -v mise &>/dev/null; then
+        if mise ls --missing 2>/dev/null | grep -q .; then
+            print_warning "Missing mise tools — run 'mise install'"
             issues=$((issues + 1))
+        else
+            print_success "All mise tools installed"
         fi
-    done
+    else
+        print_warning "mise not installed"
+        issues=$((issues + 1))
+    fi
 
     # Check Oh My Zsh plugins
     printf "\n${BOLD}Oh My Zsh plugins:${RESET}\n"
@@ -278,11 +281,94 @@ dotfiles_doctor() {
         fi
     done
 
+    # Check symlinks from the mapping file
+    printf "\n${BOLD}Symlinks:${RESET}\n"
+    local link_issues=0 dest
+    while IFS= read -r dest; do
+        if [[ -L "$dest" && ! -e "$dest" ]]; then
+            print_error "Broken: $dest"; link_issues=$((link_issues + 1))
+        elif [[ ! -e "$dest" ]]; then
+            print_warning "Missing: $dest"; link_issues=$((link_issues + 1))
+        fi
+    done < <(mapping_dests)
+    if [[ $link_issues -eq 0 ]]; then
+        print_success "All mapped symlinks healthy"
+    else
+        issues=$((issues + link_issues))
+    fi
+
+    # Check git signing configuration
+    printf "\n${BOLD}Git signing:${RESET}\n"
+    [[ "$(git config --get gpg.format || true)" == "ssh" ]] \
+        && print_success "gpg.format = ssh" \
+        || { print_warning "gpg.format is not ssh"; issues=$((issues + 1)); }
+    local signingkey; signingkey="$(git config --get user.signingkey || true)"
+    [[ -n "$signingkey" ]] \
+        && print_success "signingkey = $signingkey" \
+        || { print_warning "user.signingkey not set"; issues=$((issues + 1)); }
+    [[ "$(git config --get commit.gpgsign || true)" == "true" ]] \
+        && print_success "commit.gpgsign = true" \
+        || { print_warning "commit.gpgsign not enabled"; issues=$((issues + 1)); }
+    local signers; signers="$(git config --get gpg.ssh.allowedSignersFile || true)"; signers="${signers/#\~/$HOME}"
+    [[ -n "$signers" && -f "$signers" ]] \
+        && print_success "allowed_signers present" \
+        || { print_warning "allowed_signers missing"; issues=$((issues + 1)); }
+
+    # Check SSH key (auth + signing)
+    printf "\n${BOLD}SSH key:${RESET}\n"
+    if [[ -f "$HOME/.ssh/id_ed25519" && -f "$HOME/.ssh/id_ed25519.pub" ]]; then
+        print_success "id_ed25519 present"
+        local pub; pub="$(awk '{print $2}' "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)"
+        if [[ -n "$pub" ]] && ssh-add -L 2>/dev/null | grep -qF "$pub"; then
+            print_success "loaded in ssh-agent"
+        else
+            print_warning "not loaded in agent — run: ssh-add --apple-use-keychain ~/.ssh/id_ed25519"
+            issues=$((issues + 1))
+        fi
+    else
+        print_warning "id_ed25519 missing — run 'dotfiles ssh'"
+        issues=$((issues + 1))
+    fi
+
+    # Check secrets
+    printf "\n${BOLD}Secrets:${RESET}\n"
+    if [[ -f "$DOTFILES_DIR/shell/secrets" ]]; then
+        if grep -q 'op://' "$DOTFILES_DIR/shell/secrets" 2>/dev/null; then
+            print_warning "shell/secrets has unresolved op:// refs — run 'dotfiles secrets'"
+            issues=$((issues + 1))
+        else
+            local nvars; nvars="$(grep -cE '^export ' "$DOTFILES_DIR/shell/secrets" 2>/dev/null || true)"
+            print_success "shell/secrets present (${nvars:-0} vars)"
+        fi
+    else
+        print_warning "shell/secrets missing — run 'dotfiles secrets'"
+        issues=$((issues + 1))
+    fi
+    if grep -q 'CHANGEME' "$DOTFILES_DIR/shell/secrets.tpl" 2>/dev/null; then
+        print_warning "shell/secrets.tpl still has CHANGEME placeholders"
+        issues=$((issues + 1))
+    fi
+    local age_key="${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
+    if [[ -f "$age_key" ]]; then
+        print_success "SOPS age key present"
+    else
+        print_warning "SOPS age key missing ($age_key) — run 'dotfiles secrets'"
+        issues=$((issues + 1))
+    fi
+
+    # Check 1Password CLI (setup-time dependency)
+    printf "\n${BOLD}1Password CLI:${RESET}\n"
+    if command -v op >/dev/null 2>&1; then
+        print_success "op installed ($(op --version 2>/dev/null || true))"
+    else
+        print_warning "op not installed — needed for 'dotfiles ssh' / 'dotfiles secrets'"
+    fi
+
     echo ""
     if [[ $issues -eq 0 ]]; then
         print_success "No issues found"
     else
-        print_warning "Found $issues issue(s) — run 'dotfiles setup' to fix"
+        print_warning "Found $issues issue(s) — see suggestions above"
     fi
 }
 
@@ -308,20 +394,14 @@ dotfiles_reload() {
 dotfiles_clean() {
     print_step "Cleaning broken symlinks"
     
-    local cleaned=0
-    while IFS=: read -r source dest; do
-        # Skip comments and empty lines
-        [[ "$source" =~ ^#.*$ ]] || [[ -z "$source" ]] && continue
-        
-        # Expand tilde in destination
-        dest="${dest/#\~/$HOME}"
-        
-        if [[ -L "$dest" ]] && [[ ! -e "$dest" ]]; then
+    local cleaned=0 dest
+    while IFS= read -r dest; do
+        if [[ -L "$dest" && ! -e "$dest" ]]; then
             rm "$dest"
             print_success "Removed broken symlink: $dest"
             cleaned=$((cleaned + 1))
         fi
-    done < "$DOTFILES_DIR/config/mapping.cfg"
+    done < <(mapping_dests)
     
     if [[ $cleaned -eq 0 ]]; then
         print_success "No broken symlinks found"
@@ -365,7 +445,10 @@ dotfiles_help() {
     echo "    dotfiles <command>"
     echo ""
     printf "${BOLD}COMMANDS:${RESET}\n"
-    echo "    setup     Install all dependencies (brew, oh-my-zsh, plugins)"
+    echo "    setup     Install all dependencies (brew, mise, oh-my-zsh, plugins)"
+    echo "    ssh       Materialize SSH key from 1Password into ~/.ssh + keychain"
+    echo "    secrets   Inject secrets from 1Password into shell/secrets (op inject)"
+    echo "    signing   Register SSH key on GitHub (auth + signing) via gh"
     echo "    edit      Open dotfiles in \$EDITOR"
     echo "    update    Pull latest changes and relink configurations"
     echo "    link      Link all configurations from mapping file"
@@ -384,6 +467,15 @@ dotfiles_help() {
 case "${1:-help}" in
     setup)
         dotfiles_setup
+        ;;
+    ssh)
+        dotfiles_ssh
+        ;;
+    secrets)
+        dotfiles_secrets
+        ;;
+    signing)
+        dotfiles_signing
         ;;
     edit)
         dotfiles_edit
