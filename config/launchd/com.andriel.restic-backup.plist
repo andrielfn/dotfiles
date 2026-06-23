@@ -10,10 +10,8 @@
         <string>/bin/bash</string>
         <string>-c</string>
         <string>
-            source /Users/andriel/.dotfiles/env/shared/env-shared 2>/dev/null;
-            source /Users/andriel/.dotfiles/env/shared/env-secrets 2>/dev/null;
-            source /Users/andriel/.dotfiles/env/personal/env-personal 2>/dev/null;
-            source /Users/andriel/.dotfiles/env/personal/env-secrets 2>/dev/null;
+            source /Users/andriel/.dotfiles/shell/env.sh 2>/dev/null;
+            source /Users/andriel/.dotfiles/shell/secrets 2>/dev/null;
             /Users/andriel/.dotfiles/bin/backup backup
         </string>
     </array>

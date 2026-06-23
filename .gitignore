@@ -1,6 +1,5 @@
 # Secret environment variable files
-env/*/secrets
-env/*/env-secrets
+shell/secrets
 *.secret
 *.secrets
 
@@ -31,3 +30,7 @@ Thumbs.db
 tmp/
 temp/
 .claude
+
+# Backup files
+*.bak
+*.bak.*

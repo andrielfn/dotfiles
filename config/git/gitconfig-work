@@ -1,0 +1,13 @@
+# Work identity — applied by includeIf "gitdir:~/Work/" in the main gitconfig.
+# `email` is intentionally omitted: set it (e.g. `git config user.email …`) before
+# committing under ~/Work/. With it unset, git fails loudly ("Author identity
+# unknown") instead of producing empty-author commits.
+[user]
+  name = Andriel Nuernberg
+  signingkey = ~/.ssh/id_ed25519.pub
+
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process

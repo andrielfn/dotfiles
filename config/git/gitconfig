@@ -50,7 +50,10 @@ gpgsign = true
 showUntrackedFiles = all
 
 [gpg]
-program = gpg
+format = ssh
+
+[gpg "ssh"]
+allowedSignersFile = ~/.config/git/allowed_signers
 
 [init]
 defaultBranch = main
@@ -128,5 +131,10 @@ path = ~/.gitconfig-personal
 
 [includeIf "gitdir:~/Work/"]
 path = ~/.gitconfig-work
+
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+
+# Machine-specific overrides (safe.directory, etc.) — not tracked.
+[include]
+	path = ~/.gitconfig.local

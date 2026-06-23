@@ -2,7 +2,7 @@
 # SHELL-SPECIFIC EXPORTS AND LOGIC
 # =============================================================================
 # This file contains PATH manipulation and shell-specific logic
-# Simple environment variables have been moved to env/shared/env-shared
+# Simple environment variables have been moved to shell/env.sh
 
 # PATH configuration (depends on DOTFILES_DIR and has complex logic)
 export PATH="/usr/local/sbin:$PATH"

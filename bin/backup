@@ -5,7 +5,7 @@
 # =============================================================================
 # Backs up ~/Code and ~/LastVolt to b2:andrielfn-code
 #
-# Required env vars (set in env/personal/env-secrets):
+# Required env vars (set in shell/secrets via `dotfiles secrets`):
 #   CODE_BACKUP_B2_ACCOUNT_ID
 #   CODE_BACKUP_B2_ACCOUNT_KEY
 #   CODE_BACKUP_RESTIC_PASSWORD
@@ -36,7 +36,7 @@ setup_env() {
 
     if [[ ${#missing[@]} -gt 0 ]]; then
         echo "ERROR: Missing env vars: ${missing[*]}" >&2
-        echo "Set them in env/personal/env-secrets" >&2
+        echo "Set them in shell/secrets (run: dotfiles secrets)" >&2
         exit 1
     fi
 

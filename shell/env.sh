@@ -27,6 +27,7 @@ export HOMEBREW_NO_ANALYTICS=1
 # Language-specific configuration
 export ERL_AFLAGS="-kernel shell_history enabled"
 export ELIXIR_EDITOR="zed +__LINE__ __FILE__"
+export IEX_WITH_WERL="false"
 # export PLUG_EDITOR="zed://file/__LINE__:__FILE__"
 
 # Tool configurations
@@ -63,3 +64,9 @@ export _ZO_ECHO=1
 # Development tool configurations
 export DFT_DISPLAY=inline
 export DFT_TAB_WIDTH=2
+
+# Project paths
+export PERSONAL_PROJECTS_DIR="$HOME/Code"
+
+# SOPS / age
+export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
