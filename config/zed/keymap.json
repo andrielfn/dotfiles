@@ -95,5 +95,11 @@
     "unbind": {
       "ctrl-shift-g": "git_panel::ToggleFocus"
     }
+  },
+  {
+    "context": "Pane",
+    "unbind": {
+      "cmd-shift-g": "search::SelectPreviousMatch"
+    }
   }
 ]

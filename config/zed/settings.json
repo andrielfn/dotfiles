@@ -15,7 +15,7 @@
   },
   "diff_view_style": "unified",
   "git_panel": {
-    "tree_view": true,
+    "tree_view": false,
     "file_icons": false,
     "dock": "right"
   },
@@ -114,9 +114,10 @@
     "sidebar_side": "right",
     "dock": "right",
     "default_model": {
+      "effort": "high",
       "provider": "anthropic",
-      "model": "claude-sonnet-4-6",
-      "enable_thinking": false
+      "model": "claude-opus-4-8",
+      "enable_thinking": true
     },
     "favorite_models": [],
     "model_parameters": []

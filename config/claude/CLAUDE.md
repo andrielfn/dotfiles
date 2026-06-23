@@ -251,3 +251,34 @@ A task is done when:
 - LiveView tracks which `@assigns` a comprehension references, not the computed results
 - Fix: split large shared data structures into per-item assigns and render items explicitly (no `:for`)
 - `Phoenix.Component.assign/3` uses structural equality — unchanged items won't be marked dirty
+
+## Styling: drive state with data attributes, not conditional class strings
+
+- NEVER branch on state to build class strings (e.g. `@active && "bg-accent text-foreground"`, `class={if @open, do: "block", else: "hidden"}`). It scatters styling logic into Elixir and defeats Tailwind's static class scanning.
+- Instead, expose the state as a data attribute and style it entirely in Tailwind with the data-attribute variant:
+  - `data-active={@active}` + `class="text-foreground-soft data-[active]:bg-accent data-[active]:text-foreground"`
+  - Style children off a parent's state with `group` + `group-data-[active]:` (e.g. `<.icon class="opacity-60 group-data-[active]:opacity-100" />` under a `group`-classed, `data-active`-bearing parent).
+- Boolean assign → presence-based attribute: `data-active={@active}` renders the bare attribute when `true` and omits it when `false`/`nil`, which `data-[active]:` matches. Value-based states use `data-[state=open]:`.
+- This applies to ALL state-driven styling (active, open, selected, paused, disabled, expanded, …). The class string itself must stay static so Tailwind can see it.
+- Legitimate (keep): conditional *values* passed to component props (`color={badge_color(x)}`, `variant={if ..., do: "solid", else: "ghost"}`) and ARIA values (`aria-current={@active && "page"}`) — these are not class strings.
+
+## Button loading state (LiveView): drive the spinner off LiveView's loading classes
+
+LiveView adds a loading class to the triggering element while an event is in flight — use it to swap a label for a spinner with **zero extra assigns or JS**. Pick the right class for the trigger:
+- **`phx-click`** button → the class lands on the **button itself**: target with `[&.phx-click-loading]:…` (or `group` it).
+- **`phx-submit` form** → the class lands on the **`<form>`, not the submit button**. Make the form a named group and target the button from it: `class="group/myform …"` on the form, then `group-[.phx-submit-loading]/myform:…` on the button + its children. (A `type="submit"` button has no `phx-click`, so `phx-click-loading` never appears on it — this is the usual gotcha.)
+
+Keep the **button width stable** when swapping label→spinner: don't `hidden` the label (that collapses width). Keep it in flow as `invisible` and overlay the spinner absolutely-centered:
+```heex
+<.form phx-submit="save" class="group/f …">
+  …
+  <.button type="submit" variant="solid"
+    class="relative group-[.phx-submit-loading]/f:pointer-events-none">
+    <span class="group-[.phx-submit-loading]/f:invisible">Create</span>
+    <span class="pointer-events-none absolute inset-0 hidden items-center justify-center group-[.phx-submit-loading]/f:flex">
+      <.loading variant="bars-scale-fade" class="text-current" />   <%!-- Fluxon: bars-fade | bars-scale | bars-scale-fade | dots-* | ring --%>
+    </span>
+  </.button>
+</.form>
+```
+`pointer-events-none` while loading prevents double-submit. On success/error LiveView removes the loading class automatically — no cleanup. All classes stay static so Tailwind's scanner sees them.

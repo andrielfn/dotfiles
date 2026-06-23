@@ -1,3 +1,33 @@
+# ──────────────────────────────────────────────────────────────
+# Ghostty config — also read by cmux (libghostty).
+# cmux honors terminal colors/font/theme/splits from this file,
+# but tabs are cmux's OWN sidebar UI (Settings → Workspace colors
+# / Sidebar appearance), NOT controlled here.
+# ──────────────────────────────────────────────────────────────
+
+# cmux ── hide Ghostty's native tab bar; cmux draws its own vertical tabs
+window-show-tab-bar = never
+
+# cmux ── sidebar (vertical workspace tab) sizing. The whole row scales
+# with this. Default 12.5, range 10–20.
+# sidebar-font-size = 15
+# cmux ── top "Terminal" surface tab bar font. Default 11, range 8–14.
+surface-tab-bar-font-size = 12
+
+# cmux (custom-ui fork) ── surface (top) tab bar styling. These keys only
+# exist in the andrielfn/cmux build; live-tweak with `cmux reload-config`.
+# NOTE: no inline comments — everything after `=` is parsed as the value.
+# Snowday ── purple accent indicator, 3px, always colored:
+surface-tab-active-indicator-color = #9769dc
+surface-tab-active-indicator-height = 3
+surface-tab-active-indicator-always-colored = true
+# Active tab = editor white (tab.active_background); bar = surface gray (tab_bar.background):
+surface-tab-active-background = #ffffff
+surface-tab-bar-background = #f8f8f8
+surface-tab-border-color = #e2e4e7
+# Top chrome / tab height (default 28, range 28-72). Applies on relaunch:
+surface-tab-bar-height = 38
+
 # macOS
 macos-titlebar-style = tabs
 macos-option-as-alt = left
@@ -39,8 +69,9 @@ clipboard-write = allow
 copy-on-select = false
 clipboard-trim-trailing-spaces = true
 
-# Splits
+# Splits ── dim + fill unfocused panes so the active split stands out
 unfocused-split-opacity = 0.5
+unfocused-split-fill = #f5f5f5
 confirm-close-surface = true
 scrollback-limit = 50000000
 desktop-notifications = true
@@ -64,27 +95,28 @@ keybind = cmd+opt+left=previous_tab
 # Keybindings - reload config
 keybind = super+shift+comma=reload_config
 
-# Theme - Rosé Pine Dawn
-background = #faf4ed
-foreground = #575279
-selection-background = #ede8e2
-selection-foreground = #575279
-cursor-color = #575279
-palette = 0=#43413e
-palette = 1=#b4637a
-palette = 2=#56949f
-palette = 3=#ea9d34
-palette = 4=#286983
-palette = 5=#907aa9
-palette = 6=#d7827e
-palette = 7=#575279
-palette = 8=#9893a5
-palette = 9=#b4637a
-palette = 10=#56949f
-palette = 11=#ea9d34
-palette = 12=#286983
-palette = 13=#907aa9
-palette = 14=#d7827e
-palette = 15=#575279
+# Theme ── Snowday (light), matched to Zed theme config/zed/themes/snowday.json
+# Pure white editor surface, same as Zed's editor.background (#fff).
+background = #ffffff
+foreground = #5c6066
+selection-background = #eae1f8
+selection-foreground = #5c6066
+cursor-color = #9769dc
+palette = 0=#000000
+palette = 1=#f2590c
+palette = 2=#77cc00
+palette = 3=#f29718
+palette = 4=#41a6d9
+palette = 5=#9966cc
+palette = 6=#4dbf99
+palette = 7=#c7c7c7
+palette = 8=#686868
+palette = 9=#d6656a
+palette = 10=#a3d900
+palette = 11=#e7c547
+palette = 12=#6871ff
+palette = 13=#a37acc
+palette = 14=#57d9ad
+palette = 15=#ffffff
 
 auto-update-channel = tip
