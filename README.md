@@ -1,52 +1,49 @@
 # Dotfiles
 
-Cross-platform dotfiles system with environment-aware configuration management and automated installation.
+macOS dotfiles: a single Brewfile + mise config for tools, a mapping-based symlink
+system for configs, and 1Password-backed setup of the SSH key, secrets, and commit
+signing. A fresh Mac is provisioned with one command.
 
 ## New MacBook Setup
 
-For a new MacBook, follow these steps:
+**One command** — installs Command Line Tools + Homebrew, clones the repo, and runs the full setup:
 
-1. **Install Command Line Tools:**
-   ```bash
-   xcode-select --install
-   ```
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/andrielfn/dotfiles/main/bootstrap.sh)"
+```
 
-2. **Clone this repository:**
-   ```bash
-   git clone https://github.com/andrielfn/dotfiles ~/.dotfiles
-   cd ~/.dotfiles
-   ```
+You'll be prompted to sign in to 1Password (for the SSH key, secrets, and commit-signing setup) and for a few confirmations. Then restart your terminal.
 
-3. **Run the setup script:**
-   
-   For personal machine (default):
-   ```bash
-   ./setup.sh
-   ```
-   
-   For work machine:
-   ```bash
-   ./setup.sh --machine-type=work
-   ```
-   
-   For work machine with custom directory:
-   ```bash
-   ./setup.sh --machine-type=work --work-dir=Company
-   ```
+### Manual steps (equivalent)
 
-4. **Select Full Setup** when prompted for complete environment configuration.
+```bash
+xcode-select --install
+git clone https://github.com/andrielfn/dotfiles ~/.dotfiles
+cd ~/.dotfiles
+./setup.sh --full          # or ./setup.sh for the interactive menu
+```
 
-5. **Configure environment-specific settings** (see Configuration section below).
+For a work machine: `./setup.sh --machine-type=work [--work-dir=Company]`.
 
-6. **Restart your terminal** to activate the new configuration.
+### What full setup does
+1. Homebrew + packages (`Brewfile`)
+2. Links all configs (`config/mapping.cfg`) — including the mise config
+3. Installs mise tools (runtimes + dev CLIs)
+4. Oh My Zsh + plugins, sets zsh as default shell
+5. (optional) macOS system preferences
+6. 1Password bootstrap: materializes the SSH key, injects secrets, registers the GitHub signing key
 
 ## Machine Setup Options
 
 The setup script automatically configures your machine based on the type specified:
 
 **Machine Types:**
-- **Personal** (default): Creates `~/Code/` directory for personal projects
-- **Work**: Creates work directory (default `~/Work/`) and enables work-specific features like 1Password CLI
+- **Personal** (default): creates `~/Code/` for personal projects
+- **Work**: creates the work directory (default `~/Work/`); commits there use the work git identity
+
+The machine type only affects which project directory is created. Git identity is
+selected per-directory via `includeIf` (see Git Configuration), and the same tools,
+secrets, and configs are installed everywhere.
 
 **Command Line Options:**
 - `--machine-type=TYPE`: Set machine type (`personal` or `work`)
@@ -74,20 +71,20 @@ dotfiles/
 │   ├── zed/               # Zed editor configuration
 │   ├── mise/              # Mise tool configuration
 │   └── ...
-├── shell/                 # Shell library files (sourced by zshrc)
+├── shell/                 # Shell library (sourced by zshrc)
 │   ├── aliases.sh         # Command aliases
 │   ├── functions.sh       # Shell functions
 │   ├── exports.sh         # PATH manipulation and shell-specific logic
-│   └── init.sh           # Tool initialization and environment loading
+│   ├── env.sh             # Environment variables
+│   ├── secrets.tpl        # 1Password secret template (op:// refs)
+│   ├── secrets            # Generated secrets (gitignored)
+│   └── init.sh            # Tool initialization and environment loading
 ├── bin/                   # Executable commands
-│   └── dotfiles          # Main management utility
-├── env/                   # Environment-specific configurations
-│   ├── personal/         # Personal environment (~/Code/)
-│   ├── work/            # Work environment (~/Work/)
-│   └── shared/          # Shared configurations and environment variables
-├── installers/           # Installation scripts
-├── scripts/             # Setup utilities
-└── setup.sh            # Main installation script
+│   └── dotfiles           # Main management utility
+├── installers/            # Installation scripts (homebrew, mise, ssh, secrets, …)
+├── scripts/               # Setup utilities
+├── Brewfile               # Homebrew package manifest
+└── setup.sh               # Main installation script
 ```
 
 ## Dotfiles Management
@@ -95,61 +92,55 @@ dotfiles/
 The `dotfiles` command provides centralized management:
 
 ```bash
+dotfiles setup     # Install/repair all dependencies (brew, mise, omz, plugins, links)
+dotfiles ssh       # Materialize SSH key from 1Password into ~/.ssh + keychain
+dotfiles secrets   # Inject secrets from 1Password into shell/secrets (op inject)
+dotfiles signing   # Register SSH key on GitHub (auth + signing) via gh
 dotfiles edit      # Open dotfiles in $EDITOR
 dotfiles update    # Pull latest changes and relink configurations
 dotfiles link      # Link all configurations from mapping file
 dotfiles status    # Show current dotfiles status
-dotfiles doctor    # Check for common issues
+dotfiles doctor    # Full health check (brew, mise, links, signing, ssh, secrets, op)
 dotfiles reload    # Reload shell configuration
 dotfiles clean     # Remove broken symlinks
 dotfiles sync      # Commit and push changes
 dotfiles help      # Show available commands
 ```
 
-## Environment Detection
+## 1Password integration (setup-time only)
 
-The system automatically detects and configures environments based on working directory:
+The SSH key, secrets, and GitHub commit-signing key are all provisioned from
+1Password **during setup** and then live natively on disk — nothing calls 1Password
+at shell runtime (no per-commit / per-shell `op` latency).
 
-- **Personal Environment**: Projects in `~/Code/` use personal git configuration
-- **Work Environment**: Projects in work directory (default `~/Work/`, configurable) use work git configuration and enable work-specific features
+- `dotfiles ssh` — reads the SSH key from 1Password into `~/.ssh/id_ed25519` (+ keychain).
+- `dotfiles secrets` — `op inject`s `shell/secrets.tpl` → `shell/secrets` (gitignored),
+  and materializes the SOPS age key from 1Password to `~/.config/sops/age/keys.txt`.
+- `dotfiles signing` — authenticates `gh` with a PAT from 1Password and registers the
+  key on GitHub (auth + signing).
 
-Environment-specific configurations are loaded automatically when the shell initializes. Work machines automatically:
-- Enable 1Password CLI integration (if installed)
-- Load work-specific environment variables
-- Use work git configuration
+1Password item references live in `scripts/op-refs.sh` (SSH key, GitHub PAT, SOPS age
+key) and `shell/secrets.tpl` (env secrets, in the "Environment" vault).
 
 ## Configuration
 
 ### Environment Variables
 
 The system loads environment variables in this order:
-1. Shared public variables (`env/shared/env-shared`)
-2. Shared secrets (`env/shared/env-secrets`)
-3. Environment-specific public variables (`env/personal/env-personal` or `env/work/env-work`)
-4. Environment-specific secrets (`env/personal/env-secrets` or `env/work/env-secrets`)
+1. Public variables (`shell/env.sh`)
+2. Secrets (`shell/secrets`)
 
-**Shared Secrets** - Copy `env/shared/env-secrets.example` to `env/shared/env-secrets` and add your secrets:
+**Public Environment Variables** - Edit the tracked file directly: `shell/env.sh`.
 
-```bash
-cp env/shared/env-secrets.example env/shared/env-secrets
-# Edit env/shared/env-secrets with secrets that apply to both environments
-```
-
-**Environment-Specific Secrets** - Copy the example files and add environment-specific secrets:
+**Secrets** - Secrets live in 1Password and are materialized to `shell/secrets`
+(gitignored) at setup time via `op inject`. Edit the template `shell/secrets.tpl`
+(it references `op://` items) and regenerate with:
 
 ```bash
-# For personal secrets
-cp env/personal/env-secrets.example env/personal/env-secrets
-
-# For work secrets  
-cp env/work/env-secrets.example env/work/env-secrets
+dotfiles secrets
 ```
 
-**Public Environment Variables** - Edit the tracked environment files directly:
-
-- Shared: `env/shared/env-shared`
-- Personal: `env/personal/env-personal`
-- Work: `env/work/env-work`
+1Password is used only at setup; nothing reads it at shell runtime.
 
 **Personal Customizations** - For local-only settings, add to `~/.zshrc.local`:
 
@@ -180,42 +171,49 @@ quick_commit() {
 - `shell/aliases.sh` - Command aliases
 - `shell/functions.sh` - Shell functions
 - `shell/exports.sh` - PATH manipulation and shell-specific logic
-- `env/shared/env-shared` - Shared environment variables
+- `shell/env.sh` - Environment variables
 
 After editing shell files, run `dotfiles reload` to restart your shell.
 After editing config files, run `dotfiles link` to update symlinks.
 
 ### Git Configuration
 
-**Personal Settings** - Edit `env/personal/.gitconfig-personal`:
+Commits are SSH-signed (`gpg.format = ssh`) using `~/.ssh/id_ed25519.pub`, with
+identity selected by directory via `includeIf`.
+
+**Personal Settings** - Edit `config/git/gitconfig-personal` (used in `~/Code/`):
 
 ```bash
 [user]
     name = "Your Name"
     email = "personal@email.com"
-    signingkey = "your_gpg_key"
+    signingkey = ~/.ssh/id_ed25519.pub
 ```
 
-**Work Settings** - Edit `env/work/.gitconfig-work`:
+**Work Settings** - Edit `config/git/gitconfig-work` (used in `~/Work/`).
 
-```bash
-[user]
-    name = "Your Name"
-    email = "work@company.com"
-    signingkey = "work_gpg_key"
-```
-
-**Global Settings** - Edit `env/shared/.gitconfig`
+**Global Settings** - Edit `config/git/gitconfig`
 
 ### Tool Management
 
-Development tools are managed through Mise. Install tools as needed:
+Two sources of truth, by role:
+
+- **`Brewfile`** (Homebrew) — system libs, services, shell-init-critical tools
+  (starship/atuin/zoxide/direnv), hot-path CLIs (bat/eza/fd/ripgrep/fzf), GUI casks.
+- **`config/mise/config.toml`** (mise) — language runtimes + version-flexible dev/infra
+  CLIs (gh, jq, yq, difftastic, gum, flyctl, hcloud, just).
 
 ```bash
-mise use erlang@latest
-mise use elixir@latest
-mise use node@latest
+# Edit Brewfile / config/mise/config.toml, then:
+brew bundle --file=Brewfile     # apply package changes
+mise install                    # apply tool changes
+# or just: dotfiles setup
+
+# Per-project tool versions go in a project-level mise.toml, e.g.:
+mise use elixir@1.19 erlang@28
 ```
+
+`dotfiles doctor` also reports **drift** — packages installed but not in the Brewfile.
 
 ### Adding New Configuration Files
 

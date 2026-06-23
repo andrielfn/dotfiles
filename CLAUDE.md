@@ -4,125 +4,111 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a comprehensive dotfiles management system that provides cross-platform configuration with environment-aware setup (personal vs work machines). The system uses a centralized configuration mapping approach with automated installation and management.
+A personal macOS dotfiles system: a single declarative Brewfile + mise config for
+tools, a mapping-based symlink system for config files, a small shell library, and
+setup-time automation that materializes SSH key / secrets / commit-signing from
+1Password. One command bootstraps a fresh Mac.
 
-## Architecture
+## Where things live (the mental model)
 
-### Core Components
+- **`Brewfile`** (repo root) — Homebrew packages (system libs, services, shell-core,
+  hot-path CLIs, and GUI casks). Single source of truth for brew.
+- **`config/mise/config.toml`** — language runtimes + version-flexible dev/infra CLIs
+  (gh, jq, yq, difftastic, gum, flyctl, hcloud, just) + mise settings.
+- **`config/`** — everything symlinked into `~` via `config/mapping.cfg`
+  (zshrc, starship, ghostty, zed, atuin, mise, claude, and `config/git/*`).
+- **`shell/`** — files sourced at shell startup: `exports.sh` (PATH), `env.sh`
+  (env vars), `init.sh` (tool init + env loading + ssh-agent), `aliases.sh`,
+  `functions.sh`, `secrets.tpl` (1Password template), `secrets` (generated, gitignored).
+- **`bin/`** — executables, incl. the `dotfiles` management command and `backup`.
+- **`installers/`** — modular setup scripts (homebrew, mise, shell, macos, ssh,
+  secrets, git-signing).
+- **`scripts/`** — helpers (`utils.sh`, `config.sh` mapping linker, `op-refs.sh`).
 
-- **Configuration Mapping System**: All config files are centrally managed through `config/mapping.cfg`
-- **Environment Detection**: Automatically detects personal vs work environments based on directory structure
-- **Shell Library**: Modular shell configuration split across `shell/` directory
-- **Automated Setup**: Complete environment setup through `setup.sh` with installer modules
+### Tool placement policy (brew vs mise)
+- **mise**: language runtimes (elixir/erlang/node/bun/pnpm) + dev/infra CLIs you want
+  one current version of everywhere.
+- **brew**: system libs/build deps, services (postgres), shell-init-critical tools
+  (starship/atuin/zoxide/direnv), interactive hot-path CLIs (bat/eza/fd/ripgrep/fzf),
+  and all GUI casks.
+- Per-project tool versions go in a project-level `mise.toml`, not the global config.
 
-### Directory Structure
+## Setup
 
-- `config/` - All configuration files managed by the mapping system
-- `shell/` - Shell library files (aliases, functions, exports, init)
-- `env/` - Environment-specific configurations (personal/work/shared)
-- `bin/` - Executable scripts (main `dotfiles` command)
-- `installers/` - Modular installation scripts
-- `scripts/` - Setup utilities and helper functions
-
-## Common Commands
-
-### Setup and Installation
 ```bash
-# Initial setup (personal machine)
-./setup.sh
+# Fresh Mac — one command (installs CLT + Homebrew, clones, runs full setup)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/andrielfn/dotfiles/main/bootstrap.sh)"
 
-# Work machine setup
-./setup.sh --machine-type=work --work-dir=Company
-
-# Installation options during setup:
-# 1) Full Setup (Recommended) - Complete environment
-# 2) Package Management Only - Homebrew and tools
-# 3) Shell Configuration Only - ZSH setup
-# 4) macOS Configuration Only - System preferences
+# Manual / re-run
+./setup.sh --full          # non-interactive full setup (used by bootstrap)
+./setup.sh                 # interactive menu (full / packages / shell / macOS)
 ```
 
-### Daily Management
+Full setup order: Homebrew + Brewfile → link configs (mapping) → `mise install` →
+Oh My Zsh + plugins → (optional) macOS prefs → 1Password bootstrap (SSH key,
+secrets, GitHub signing key). `bin/dotfiles setup` is the lighter dependency-only path.
+
+## The `dotfiles` command
+
 ```bash
-# Primary management command
-dotfiles help           # Show all available commands
-dotfiles edit           # Open dotfiles in $EDITOR
-dotfiles update         # Pull latest changes and relink configs
-dotfiles link           # Link all configurations from mapping file
-dotfiles status         # Show current dotfiles status
-dotfiles reload         # Reload shell configuration (restarts shell)
-dotfiles doctor         # Check for common issues
-dotfiles clean          # Remove broken symlinks
-dotfiles sync           # Commit and push changes
+dotfiles setup     # install/repair all dependencies (brew, mise, omz, plugins, links)
+dotfiles ssh       # materialize SSH key from 1Password into ~/.ssh + keychain
+dotfiles secrets   # inject secrets from 1Password into shell/secrets (op inject)
+dotfiles signing   # register SSH key on GitHub (auth + signing) via gh
+dotfiles link      # link all configs from config/mapping.cfg
+dotfiles status    # status + symlink health
+dotfiles doctor    # full health check (brew, mise, links, signing, ssh key, secrets, op)
+dotfiles update    # git pull + relink
+dotfiles reload    # restart shell
+dotfiles clean     # remove broken symlinks
+dotfiles sync      # commit + push
 ```
 
-### Configuration Management
-```bash
-# After editing config files
-dotfiles link           # Relink configurations
+## Environment variables & secrets
 
-# After editing shell files
-dotfiles reload         # Restart shell to reload
+Loaded at shell startup (`shell/init.sh` → `load_env_config`), in order:
+1. `shell/env.sh` — public environment variables (tracked).
+2. `shell/secrets` — secrets (gitignored), generated by `dotfiles secrets`.
 
-# Check system health
-dotfiles doctor
-dotfiles status
+Secrets live in 1Password (the "Environment" vault). `shell/secrets.tpl` (tracked)
+holds `op://` references; `dotfiles secrets` runs `op inject` to produce `shell/secrets`,
+and also materializes the **SOPS age key** from 1Password to `~/.config/sops/age/keys.txt`
+(used by `SOPS_AGE_KEY_FILE`). **1Password is used only at setup time** — nothing reads
+it at shell runtime. 1Password item pointers live in `scripts/op-refs.sh` (SSH key,
+GitHub PAT, SOPS age key). Machine-local-only settings go in `~/.zshrc.local` (shell)
+or `~/.gitconfig.local` (git), neither tracked.
+
+## Git identity & commit signing
+
+- `config/git/gitconfig` is the main config; `gitconfig-personal` and `gitconfig-work`
+  are selected **by directory** via `includeIf` (`~/Code` → personal, `~/Work` → work).
+  Both are always linked; git picks based on the repo's path.
+- Commits are **SSH-signed**: `gpg.format = ssh`, `user.signingkey = ~/.ssh/id_ed25519.pub`,
+  verified locally via `config/git/allowed_signers`. No GPG.
+
+## Configuration mapping
+
+`config/mapping.cfg` maps `source:dest` (sources are relative to `config/`):
 ```
-
-## Environment System
-
-### Environment Detection
-- **Personal**: Detected when only `~/Code/` directory exists
-- **Work**: Detected when `~/Work/` or `~/work/` directory exists
-- Custom work directories supported via setup script
-
-### Configuration Loading Order
-1. `env/shared/env-shared` - Shared public variables
-2. `env/shared/env-secrets` - Shared secrets (not tracked)
-3. `env/personal/env-personal` or `env/work/env-work` - Environment-specific public
-4. `env/personal/env-secrets` or `env/work/env-secrets` - Environment-specific secrets
-
-### Git Configuration
-- Shared config: `env/shared/.gitconfig` (linked to `~/.gitconfig`)
-- Personal config: `env/personal/.gitconfig-personal` (used in `~/Code/`)
-- Work config: `env/work/.gitconfig-work` (used in work directories)
-
-## Tool Management
-
-- **Package Management**: Homebrew with environment-specific Brewfiles
-- **Runtime Management**: Mise (modern replacement for asdf)
-- **Shell Enhancement**: Oh My Zsh, Starship prompt, Zoxide, FZF
-- **Search Tools**: Ripgrep with global configuration to ignore build/dependency directories
-- **Development Tools**: Automatically configured based on environment
-
-## Configuration Mapping
-
-All configuration files are managed through `config/mapping.cfg`:
-```
-source_file:destination_path
 zshrc:~/.zshrc
 starship.toml:~/.starship.toml
-ripgrep:~/.ripgreprc        # Global ripgrep configuration
-zed/:~/.config/zed/         # Directory mapping (trailing slash)
+git/gitconfig:~/.gitconfig
+zed/:~/.config/zed/         # trailing slash = directory mapping
 ```
 
-The ripgrep configuration (`config/ripgrep`) automatically ignores common build and dependency directories like `deps/`, `_build/`, `node_modules/`, `target/`, and many others.
+## Development workflow
 
-## Development Workflow
+1. Edit files in `config/` → `dotfiles link`.
+2. Edit `shell/` files → `dotfiles reload`.
+3. Edit `Brewfile` / `config/mise/config.toml` → `dotfiles setup` (or `brew bundle` / `mise install`).
+4. `dotfiles doctor` to verify health (incl. drift: packages installed but not in the Brewfile).
+5. `dotfiles sync` to commit + push.
 
-1. Edit configuration files in `config/` directory
-2. Run `dotfiles link` to update symlinks
-3. For shell changes, run `dotfiles reload`
-4. Use `dotfiles status` and `dotfiles doctor` for health checks
-5. Commit changes with `dotfiles sync`
+## Key files
 
-## Key Files
-
-- `bin/dotfiles:257` - Main management command with all subcommands
-- `setup.sh:24-45` - Command line argument parsing for machine setup
-- `shell/init.sh:6-12` - Environment detection logic
-- `config/mapping.cfg` - Central configuration mapping
-- `shell/` directory - All shell library components
-
-## Environment Variables
-
-Local customizations should go in `~/.zshrc.local` (not tracked), while tracked environment variables should be placed in the appropriate `env/` files based on scope (shared vs personal/work).
+- `bin/dotfiles` — the management command (all subcommands + `mapping_dests` helper).
+- `setup.sh` — full/menu installer and machine-type flags.
+- `scripts/config.sh` — the mapping → symlink engine (`setup_configurations`).
+- `scripts/op-refs.sh` — 1Password item references + `require_op` sign-in helper.
+- `shell/init.sh` — shell init, env loading, tool activation, ssh-agent.
+- `config/mapping.cfg` — central symlink mapping.
