@@ -30,10 +30,15 @@ setup_mise_config() {
   # Create mise config directory
   mkdir -p "$HOME/.config/mise"
 
-  # Note: mise configuration is now handled by the centralized config system
-  print_success "mise configuration will be linked by the centralized config system"
-
-  print_success "mise configuration complete"
+  # Link the global mise config NOW so `mise install` can read it, even if the
+  # full mapping link step (shell installer) hasn't run yet. Idempotent with the
+  # later folder mapping (mise/:~/.config/mise/).
+  if [[ -f "$dotfiles_dir/config/mise/config.toml" ]]; then
+    create_symlink "$dotfiles_dir/config/mise/config.toml" "$HOME/.config/mise/config.toml"
+    print_success "mise config linked"
+  else
+    print_warning "mise config not found at $dotfiles_dir/config/mise/config.toml"
+  fi
 }
 
 install_development_tools() {

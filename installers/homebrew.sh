@@ -30,21 +30,14 @@ install_homebrew() {
 }
 
 install_packages() {
-  local env="$1"
-  local dotfiles_dir="$2"
+  local dotfiles_dir="$1"
 
-  print_in_yellow "=> Installing packages for environment: $env"
+  print_in_yellow "=> Installing packages from Brewfile"
 
-  # Install shared packages first
-  if [[ -f "$dotfiles_dir/env/shared/Brewfile" ]]; then
-    print_in_blue "Installing shared packages..."
-    brew bundle --file="$dotfiles_dir/env/shared/Brewfile"
-  fi
-
-  # Install environment-specific packages
-  if [[ -f "$dotfiles_dir/env/$env/Brewfile" ]]; then
-    print_in_blue "Installing $env-specific packages..."
-    brew bundle --file="$dotfiles_dir/env/$env/Brewfile"
+  if [[ -f "$dotfiles_dir/Brewfile" ]]; then
+    brew bundle --file="$dotfiles_dir/Brewfile"
+  else
+    print_warning "Brewfile not found"
   fi
 
   # Cleanup
@@ -55,18 +48,15 @@ install_packages() {
 }
 
 main() {
-  local current_env=$(detect_environment)
   local dotfiles_dir="$(cd "$(dirname "$0")/.." && pwd)"
-
-  print_in_yellow "Detected environment: $current_env\n"
 
   # Install Homebrew
   install_homebrew
 
   # Ask for confirmation before installing packages
-  ask_for_confirmation "Install packages for $current_env environment?"
+  ask_for_confirmation "Install packages from Brewfile?"
   if answer_is_yes; then
-    install_packages "$current_env" "$dotfiles_dir"
+    install_packages "$dotfiles_dir"
   else
     print_warning "Skipped package installation"
   fi
