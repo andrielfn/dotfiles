@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
 # macOS defaults installer
-# This script configures macOS system preferences for optimal development experience
-# Optimized for macOS Sonoma (14.x)
+# This script configures macOS system preferences for optimal development experience.
+# Verified against macOS Sequoia (15.x) and Tahoe (26.x).
+#
+# Most `defaults` domains here are stable across versions; the few genuine
+# per-version differences are handled with `$os_major` guards rather than
+# separate per-version files (see configure_appearance for Tahoe-only keys).
 #
 # Note: Some commands that worked in earlier macOS versions have been deprecated:
 # - spctl --master-disable (Gatekeeper) - removed in Sequoia, limited in Sonoma
 # - tmutil disablelocal - deprecated since High Sierra, ineffective on APFS
+# - com.apple.alf plist writes - unreliable since Sequoia; use socketfilterfw
 # - Some systemsetup commands may require manual configuration in System Settings
 
 source "$(dirname "$0")/../scripts/utils.sh"
@@ -15,6 +20,16 @@ source "$(dirname "$0")/../scripts/utils.sh"
 if ! is_macos; then
   print_error "This script is only for macOS"
   exit 1
+fi
+
+# Major OS version (15 = Sequoia, 26 = Tahoe). Used to guard version-specific keys.
+os_major="$(get_os_version | cut -d. -f1)"
+
+# Warn on versions we haven't verified against, but continue: the shared
+# defaults domains are stable, so only version-guarded blocks are at risk.
+if [[ "$os_major" -lt 15 || "$os_major" -gt 26 ]] 2>/dev/null; then
+  print_warning "Untested macOS version ($(get_os_version)); verified on Sequoia (15) and Tahoe (26)."
+  print_warning "Shared settings should apply; version-guarded blocks may be skipped."
 fi
 
 configure_general_ui() {
@@ -46,7 +61,38 @@ configure_general_ui() {
   defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
   defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
+  # Save new documents to disk (not iCloud) by default
+  print_step "Defaulting save dialogs to local disk..."
+  defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+  # Don't auto-open Photos when a device (iPhone/camera) is connected
+  print_step "Disabling Photos auto-open on device connect..."
+  defaults write com.apple.ImageCapture disableHotPlug -bool true
+
   print_success "General UI settings configured"
+}
+
+configure_appearance() {
+  # Tahoe (macOS 26+) only: tone down the Liquid Glass redesign.
+  # These are the only verified, scriptable Tahoe-specific keys — the menu bar
+  # background, glass tint, Spotlight clipboard, and Control Center layout are
+  # GUI-only with no defaults keys. Both keys live in com.apple.universalaccess
+  # and typically require a logout/restart to fully take effect.
+  if [[ "$os_major" -lt 26 ]] 2>/dev/null; then
+    return 0
+  fi
+
+  print_header "Configuring Appearance (Tahoe)"
+
+  # Reduce transparency: opaque menu bar, Dock, and Control Center
+  print_step "Reducing Liquid Glass transparency..."
+  defaults write com.apple.universalaccess reduceTransparency -bool true
+
+  # Reduce motion: snappier, less animated window/space transitions
+  print_step "Reducing motion..."
+  defaults write com.apple.universalaccess reduceMotion -bool true
+
+  print_success "Appearance configured (log out/in to fully apply)"
 }
 
 configure_dock() {
@@ -72,6 +118,10 @@ configure_dock() {
   print_step "Hiding recent applications in dock..."
   defaults write com.apple.dock show-recents -bool false
 
+  # Keep Spaces in a fixed order (don't rearrange by most-recent use)
+  print_step "Disabling automatic Space rearranging..."
+  defaults write com.apple.dock mru-spaces -bool false
+
   # Remove all default apps from dock
   print_step "Clearing default dock apps..."
   defaults write com.apple.dock persistent-apps -array
@@ -81,6 +131,11 @@ configure_dock() {
 
 configure_finder() {
   print_header "Configuring Finder"
+
+  # Open new Finder windows to Home instead of Recents
+  print_step "Setting new Finder windows to open at Home..."
+  defaults write com.apple.finder NewWindowTarget -string "PfHm"
+  defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
 
   # Show hidden files
   print_step "Showing hidden files..."
@@ -128,10 +183,18 @@ configure_finder() {
 configure_keyboard() {
   print_header "Configuring Keyboard"
 
-  # Set fast key repeat rate
-  print_step "Setting fast key repeat..."
-  defaults write NSGlobalDomain KeyRepeat -int 2
-  defaults write NSGlobalDomain InitialKeyRepeat -int 15
+  # Set the fastest practical key repeat.
+  # These go below the System Settings sliders' minimums (KeyRepeat 2 /
+  # InitialKeyRepeat 15). KeyRepeat 1 is the fastest usable rate (0 is often
+  # too fast/glitchy); InitialKeyRepeat 10 shortens the delay before repeating.
+  print_step "Setting fastest key repeat..."
+  defaults write NSGlobalDomain KeyRepeat -int 1
+  defaults write NSGlobalDomain InitialKeyRepeat -int 10
+
+  # Disable press-and-hold accent popup so holding a key repeats it
+  # (needed for Vim / editor motions)
+  print_step "Disabling press-and-hold accent popup..."
+  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
   # Disable automatic capitalization
   print_step "Disabling automatic capitalization..."
@@ -163,9 +226,13 @@ configure_keyboard() {
 configure_trackpad() {
   print_header "Configuring Trackpad"
 
-  # Enable tap to click
+  # Enable tap to click.
+  # The AppleBluetoothMultitouch.trackpad domain is unreliable from a plain
+  # `defaults write` and often won't take on a built-in trackpad until it's
+  # also written to the per-host (ByHost) domain, so we write both.
   print_step "Enabling tap to click..."
   defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+  defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
   defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
   # Enable three finger drag
@@ -198,7 +265,29 @@ configure_screenshots() {
   print_step "Disabling screenshot shadows..."
   defaults write com.apple.screencapture disable-shadow -bool true
 
+  # Disable the floating thumbnail (screenshot is saved/paste-ready immediately)
+  print_step "Disabling screenshot floating thumbnail..."
+  defaults write com.apple.screencapture show-thumbnail -bool false
+
+  # Omit the date/time from screenshot filenames
+  print_step "Removing date from screenshot filenames..."
+  defaults write com.apple.screencapture include-date -bool false
+
   print_success "Screenshots configured"
+}
+
+configure_desktop_services() {
+  print_header "Configuring Desktop Services"
+
+  # Don't write .DS_Store files on network or USB volumes
+  # (keeps them out of shared drives and git repos)
+  print_step "Preventing .DS_Store on network volumes..."
+  defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+
+  print_step "Preventing .DS_Store on USB volumes..."
+  defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+  print_success "Desktop services configured"
 }
 
 configure_security() {
@@ -209,13 +298,18 @@ configure_security() {
   defaults write com.apple.screensaver askForPassword -int 1
   defaults write com.apple.screensaver askForPasswordDelay -int 0
 
-  # Enable firewall
-  print_step "Enabling firewall..."
-  sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+  # Enable firewall via socketfilterfw (the com.apple.alf plist-write approach
+  # is unreliable since Sequoia). socketfilterfw is still valid on Tahoe.
+  local fw="/usr/libexec/ApplicationFirewall/socketfilterfw"
 
-  # Enable stealth mode
-  print_step "Enabling stealth mode..."
-  sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+  print_step "Enabling firewall..."
+  if sudo "$fw" --setglobalstate on; then
+    print_step "Enabling stealth mode..."
+    sudo "$fw" --setstealthmode on ||
+      print_warning "Could not enable stealth mode; enable it in System Settings > Network > Firewall."
+  else
+    print_warning "Could not enable the firewall via socketfilterfw; enable it manually in System Settings > Network > Firewall."
+  fi
 
   # Note: Gatekeeper disable command removed in macOS Sequoia, limited in Sonoma
   # print_step "Configuring Gatekeeper..."
@@ -305,7 +399,7 @@ restart_affected_apps() {
 main() {
   print_header "macOS Configuration Script"
   print_info "This script will configure macOS for optimal development experience"
-  print_info "Optimized for macOS Sonoma (14.x)"
+  print_info "Detected macOS $(get_os_version) (verified on Sequoia 15.x and Tahoe 26.x)"
   print_warning "Some changes require administrator privileges"
 
   ask_for_confirmation "Do you want to continue with macOS configuration?"
@@ -326,11 +420,13 @@ main() {
 
   # Run configuration functions
   configure_general_ui
+  configure_appearance
   configure_dock
   configure_finder
   configure_keyboard
   configure_trackpad
   configure_screenshots
+  configure_desktop_services
   configure_security
   configure_terminal
   configure_developer_tools
