@@ -132,8 +132,12 @@ path = ~/.gitconfig-personal
 [includeIf "gitdir:~/Work/"]
 path = ~/.gitconfig-work
 
+# Push to GitHub over SSH, but leave fetch/clone on HTTPS so tooling works
+# before an SSH key exists (fresh Mac, Homebrew's git fetch, CI, etc.).
+# Using insteadOf here (instead of pushInsteadOf) would rewrite *all* HTTPS
+# GitHub access to SSH and break those flows with "Permission denied (publickey)".
 [url "git@github.com:"]
-	insteadOf = https://github.com/
+	pushInsteadOf = https://github.com/
 
 # Machine-specific overrides (safe.directory, etc.) — not tracked.
 [include]

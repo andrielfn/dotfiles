@@ -20,7 +20,9 @@ hcloud = "latest"
 just = "latest"
 
 # --- Other tooling ---
-dexter = "latest"
+# Bare "dexter" isn't in mise's registry (aborts `mise install` for ALL tools);
+# use the explicit aqua backend. Delete this line if you don't need dexter.
+"aqua:remoteoss/dexter" = "latest"
 sentry-cli = "latest"
 sops = "3.13.1"
 

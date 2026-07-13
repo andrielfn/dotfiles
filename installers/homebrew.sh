@@ -7,25 +7,32 @@ source "$(dirname "$0")/../scripts/utils.sh"
 
 # Environment detection function is now in utils.sh
 
+# Put an already-installed brew on PATH. setup.sh runs in a non-login shell that
+# hasn't sourced ~/.zprofile, so `command -v brew` would miss an existing install
+# and wrongly re-run the installer.
+load_brew_shellenv() {
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+}
+
 install_homebrew() {
   print_in_yellow "=> Installing Homebrew...\n"
 
+  load_brew_shellenv
   if command -v brew &>/dev/null; then
+    # Don't run `brew update` here — it's slow and does a git fetch that can fail
+    # before SSH is set up. `brew bundle` picks up new packages regardless.
     print_success "Homebrew already installed"
-    brew update
     return 0
   fi
 
-  # Install Homebrew
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # Install Homebrew non-interactively (sudo already primed by setup.sh/bootstrap).
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-  # Add Homebrew to PATH
-  if [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  elif [[ -f "/usr/local/bin/brew" ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-  fi
-
+  load_brew_shellenv
   print_success "Homebrew installed successfully"
 }
 
@@ -34,21 +41,39 @@ install_packages() {
 
   print_in_yellow "=> Installing packages from Brewfile\n"
 
-  if [[ -f "$dotfiles_dir/Brewfile" ]]; then
-    print_info "On a fresh Mac this can take several minutes — downloads run in parallel and progress appears below. Please don't cancel."
-    # Skip the redundant auto-update (Homebrew was just installed/updated) and
-    # quiet env hints so the download/install progress is the only output.
-    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 \
-      brew bundle --file="$dotfiles_dir/Brewfile"
-  else
+  if [[ ! -f "$dotfiles_dir/Brewfile" ]]; then
     print_warning "Brewfile not found"
+    return 0
   fi
 
-  # Cleanup
-  brew cleanup
-  brew doctor
+  print_info "brew bundle installs only what's missing (already-installed packages are skipped)."
+  print_info "Large app downloads can be slow or time out — failures auto-retry and won't stop the rest."
 
-  print_success "All packages installed successfully"
+  # NO_AUTO_UPDATE: skip the slow/failure-prone git update.
+  # NO_ENV_HINTS:   quiet the post-install hint spam.
+  # CURL_RETRIES:   retry each flaky vendor-CDN download before giving up.
+  local -x HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CURL_RETRIES=3
+
+  # Retry the whole bundle a few times. Each pass skips what's already installed,
+  # so only the previously-failed packages are re-attempted. Never fatal — a slow
+  # CDN shouldn't block the rest of setup.
+  local attempt=1 max=3
+  while true; do
+    if brew bundle --file="$dotfiles_dir/Brewfile"; then
+      print_success "All packages installed"
+      break
+    fi
+    if (( attempt >= max )); then
+      print_warning "Some packages still failed after $max attempts (usually slow app CDNs or a VPN)."
+      print_warning "Finish them later with: brew bundle --file=\"$dotfiles_dir/Brewfile\""
+      break
+    fi
+    attempt=$((attempt + 1))
+    print_warning "Retrying packages that failed (attempt $attempt/$max)…"
+    sleep 3
+  done
+
+  brew cleanup
 }
 
 main() {
