@@ -126,6 +126,29 @@ get_os_version() {
   fi
 }
 
+# Prompt for sudo once, then refresh the timestamp in the background for the
+# lifetime of the calling script. Long steps (Homebrew casks with pkg
+# installers, macOS prefs) invoke sudo internally; without a warm timestamp they
+# stall on a hidden password prompt that looks like a hang. Returns non-zero if
+# the user can't get sudo (e.g. not an Administrator).
+keep_sudo_alive() {
+  if ! sudo -v; then
+    return 1
+  fi
+
+  # Skip a second keep-alive loop if one is already running in this process.
+  if [[ -n "${_SUDO_KEEPALIVE_PID:-}" ]] && kill -0 "$_SUDO_KEEPALIVE_PID" 2>/dev/null; then
+    return 0
+  fi
+
+  (while true; do
+    sudo -n true
+    sleep 60
+    kill -0 "$$" 2>/dev/null || exit
+  done) 2>/dev/null &
+  _SUDO_KEEPALIVE_PID=$!
+}
+
 # =============================================================================
 # FILE UTILITIES
 # =============================================================================
@@ -347,7 +370,7 @@ export -f print_in_purple print_in_cyan print_in_white
 export -f print_success print_error print_warning print_info print_question
 export -f print_header print_step
 export -f ask_for_confirmation answer_is_yes
-export -f cmd_exists is_macos is_arm64 get_os_version
+export -f cmd_exists is_macos is_arm64 get_os_version keep_sudo_alive
 export -f create_symlink backup_file detect_environment
 export -f install_if_missing show_spinner run_with_spinner
 export -f download_file check_internet validate_email validate_url

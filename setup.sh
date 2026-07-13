@@ -143,9 +143,11 @@ check_prerequisites() {
     exit 1
   fi
 
-  # Check if we have sudo access
-  if ! sudo -v; then
-    print_error "Administrator privileges required"
+  # Prime sudo once and keep it warm for the whole run so long steps (Homebrew
+  # casks, macOS prefs) never stall on a hidden password prompt. When launched
+  # via bootstrap.sh the timestamp is already cached, so this won't re-prompt.
+  if ! keep_sudo_alive; then
+    print_error "Administrator privileges required (is '$USER' an Administrator?)"
     exit 1
   fi
 

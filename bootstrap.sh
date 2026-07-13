@@ -19,23 +19,40 @@ log() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
 
 # 1. Xcode Command Line Tools (provides git + compilers)
 if ! xcode-select -p >/dev/null 2>&1; then
-  log "Installing Xcode Command Line Tools (accept the GUI prompt)..."
-  xcode-select --install || true
-  log "Waiting for Command Line Tools to finish installing..."
+  log "Installing Xcode Command Line Tools — accept the GUI dialog (Install → Agree)."
+  xcode-select --install >/dev/null 2>&1 || true
+  # The GUI installer runs independently, so poll until git/clang are actually
+  # usable (not just the receipt). Allow up to ~30 min for slow connections.
   tries=0
-  until xcode-select -p >/dev/null 2>&1; do
+  until xcode-select -p >/dev/null 2>&1 && /usr/bin/xcrun --find git >/dev/null 2>&1; do
     tries=$((tries + 1))
-    if (( tries > 180 )); then  # ~15 min
-      echo "Command Line Tools not detected after 15 min." >&2
-      echo "Accept the install dialog (or run 'xcode-select --install'), then re-run this command." >&2
+    if (( tries > 360 )); then  # ~30 min
+      echo "" >&2
+      echo "Command Line Tools still not detected after 30 min." >&2
+      echo "Finish the install (or run 'xcode-select --install'), then re-run this command." >&2
       exit 1
+    fi
+    if (( tries % 12 == 0 )); then  # nudge every ~60s so it doesn't look dead
+      log "Still waiting for Command Line Tools to finish installing..."
     fi
     sleep 5
   done
   log "Command Line Tools installed"
 fi
 
-# 2. Homebrew
+# 2. Prime sudo up front. Homebrew's installer runs non-interactively (below) and
+#    aborts with "Need sudo access" unless credentials are already cached — so ask
+#    once here and keep the timestamp warm for the rest of the run.
+if ! sudo -v; then
+  echo "" >&2
+  echo "This setup needs administrator (sudo) access." >&2
+  echo "Make sure '$USER' is an Administrator (System Settings → Users & Groups)," >&2
+  echo "then re-run this command." >&2
+  exit 1
+fi
+(while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done) 2>/dev/null &
+
+# 3. Homebrew
 if ! command -v brew >/dev/null 2>&1; then
   log "Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c \
@@ -48,7 +65,7 @@ elif [[ -x /usr/local/bin/brew ]]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
 
-# 3. Clone (or update) the dotfiles
+# 4. Clone (or update) the dotfiles
 if [[ ! -d "$DEST/.git" ]]; then
   log "Cloning dotfiles into $DEST..."
   git clone "$REPO_URL" "$DEST"
@@ -57,7 +74,7 @@ else
   git -C "$DEST" pull --ff-only || true
 fi
 
-# 4. Run the full setup. Read prompts from the terminal even when this script
+# 5. Run the full setup. Read prompts from the terminal even when this script
 #    was piped (curl | bash), so 1Password sign-in / confirmations still work.
 log "Running full setup..."
 cd "$DEST"

@@ -8,7 +8,7 @@ source "$(dirname "$0")/../scripts/utils.sh"
 # Environment detection function is now in utils.sh
 
 install_homebrew() {
-  print_in_yellow "=> Installing Homebrew..."
+  print_in_yellow "=> Installing Homebrew...\n"
 
   if command -v brew &>/dev/null; then
     print_success "Homebrew already installed"
@@ -32,10 +32,14 @@ install_homebrew() {
 install_packages() {
   local dotfiles_dir="$1"
 
-  print_in_yellow "=> Installing packages from Brewfile"
+  print_in_yellow "=> Installing packages from Brewfile\n"
 
   if [[ -f "$dotfiles_dir/Brewfile" ]]; then
-    brew bundle --file="$dotfiles_dir/Brewfile"
+    print_info "On a fresh Mac this can take several minutes — downloads run in parallel and progress appears below. Please don't cancel."
+    # Skip the redundant auto-update (Homebrew was just installed/updated) and
+    # quiet env hints so the download/install progress is the only output.
+    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 \
+      brew bundle --file="$dotfiles_dir/Brewfile"
   else
     print_warning "Brewfile not found"
   fi
