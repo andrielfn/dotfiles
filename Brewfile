@@ -70,7 +70,7 @@ cask "raycast"
 cask "ghostty"             # terminal
 cask "zed@preview"         # editor
 cask "claude"
-cask "docker"
+cask "docker-desktop"      # cask "docker" was renamed upstream
 cask "tableplus"
 cask "yaak"                # API client
 cask "google-chrome"

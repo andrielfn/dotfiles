@@ -71,6 +71,39 @@ setup_oh_my_zsh() {
   fi
 }
 
+# Oh My Zsh custom plugins referenced by config/zshrc's plugins=(...). Kept in
+# sync with the same list in bin/dotfiles (dotfiles setup). "name|repo".
+setup_omz_plugins() {
+  print_in_yellow "=> Setting up Oh My Zsh plugins...\n"
+
+  local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
+  mkdir -p "$plugins_dir"
+
+  local omz_plugins=(
+    "fzf-tab|https://github.com/Aloxaf/fzf-tab"
+    "forgit|https://github.com/wfxr/forgit"
+    "zsh-autopair|https://github.com/hlissner/zsh-autopair"
+    "you-should-use|https://github.com/MichaelAquilina/zsh-you-should-use"
+    "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
+    "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting"
+  )
+
+  local entry name repo
+  for entry in "${omz_plugins[@]}"; do
+    name="${entry%%|*}"
+    repo="${entry##*|}"
+    if [[ -d "$plugins_dir/$name" ]]; then
+      print_success "$name already installed"
+    elif git clone --depth=1 "$repo" "$plugins_dir/$name" 2>/dev/null; then
+      print_success "$name installed"
+    else
+      print_warning "Failed to clone $name — retry later with 'dotfiles setup'"
+    fi
+  done
+
+  print_success "Oh My Zsh plugins setup complete"
+}
+
 setup_shell_directories() {
   print_in_yellow "=> Setting up shell directories..."
 
@@ -153,6 +186,9 @@ main() {
 
   # Setup Oh My Zsh
   setup_oh_my_zsh
+
+  # Install the custom plugins referenced by config/zshrc
+  setup_omz_plugins
 
   # Setup shell configurations using mapping system
   setup_configurations "$dotfiles_dir"

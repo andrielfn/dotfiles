@@ -43,7 +43,10 @@ add_to_keychain() {
     # passed through the environment, never written to the temp file.
     askpass="$(mktemp)"
     chmod 700 "$askpass"
-    trap 'rm -f "$askpass"' RETURN
+    # ${askpass:-}: a bash RETURN trap set in a function is global (no functrace),
+    # so it re-fires on later function returns (e.g. main) where askpass is out of
+    # scope — guard it so `set -u` doesn't abort an already-successful run.
+    trap 'rm -f "${askpass:-}"' RETURN
     printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$OP_SSH_PASS"\n' >"$askpass"
     if OP_SSH_PASS="$pass" SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0 \
       ssh-add --apple-use-keychain "$SSH_KEY" </dev/null 2>/dev/null; then

@@ -24,7 +24,10 @@ materialize_sops_age_key() {
   # Write to an adjacent temp file (strict umask, never world-readable) and only
   # mv into place on success — so a failed `op read` can't clobber an existing key.
   local tmp="$SOPS_AGE_FILE.tmp.$$"
-  trap 'rm -f "$tmp"' RETURN   # clean up temp on any exit path
+  # ${tmp:-}: a bash RETURN trap set in a function is global (no functrace), so it
+  # re-fires on later returns (e.g. main) where tmp is out of scope — guard it so
+  # `set -u` doesn't abort after the key was already written.
+  trap 'rm -f "${tmp:-}"' RETURN
   if ( umask 077; op read "$OP_SOPS_AGE" >"$tmp" ) && [[ -s "$tmp" ]]; then
     chmod 600 "$tmp"
     mv -f "$tmp" "$SOPS_AGE_FILE"
