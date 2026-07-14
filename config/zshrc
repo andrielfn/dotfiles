@@ -16,7 +16,9 @@ ZOXIDE_CMD_OVERRIDE="cd"
 # Oh My Zsh plugins
 plugins=(
     git
-    command-not-found
+    # command-not-found: omitted on purpose. Its macOS handler runs
+    # `brew which-formula` on every unknown command, adding a ~5s hang to each
+    # typo just to suggest a brew install. Not worth it.
     fzf-tab
     forgit
     zsh-autopair
