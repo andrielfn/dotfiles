@@ -3,7 +3,8 @@
 # =============================================================================
 # RESTIC BACKUP TO BACKBLAZE B2
 # =============================================================================
-# Backs up ~/Code and ~/LastVolt to b2:andrielfn-code
+# Backs up a few $HOME-relative folders to b2:andrielfn-code, so the same
+# snapshot restores cleanly onto any Mac regardless of username.
 #
 # Required env vars (set in shell/secrets via `dotfiles secrets`):
 #   CODE_BACKUP_B2_ACCOUNT_ID
@@ -12,17 +13,27 @@
 
 set -euo pipefail
 
-REPO="b2:andrielfn-code:"
+# Overridable so the backup/restore round trip can be exercised against a
+# local repo without touching B2. Leave unset in normal use.
+REPO="${BACKUP_REPO:-b2:andrielfn-code:}"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
 EXCLUDE_FILE="$DOTFILES_DIR/config/restic/excludes"
 LOG_DIR="$HOME/.local/share/restic"
 LOG_FILE="$LOG_DIR/backup.log"
 LOCK_FILE="$LOG_DIR/backup.pid"
 
+# Folders to back up, relative to $HOME. Keep them relative: restic stores the
+# tree exactly as given, so relative paths restore into any home directory
+# while absolute ones bake this machine's username into every snapshot.
 BACKUP_DIRS=(
-    "$HOME/Code"
-    "$HOME/LastVolt"
+    Code
+    LastVolt
 )
+
+# Top-level entries of the snapshot most recently checked by
+# assert_home_relative. A global, not a return value: `exit` inside a $(...)
+# only kills the subshell, which would silently defuse the guard.
+SNAPSHOT_TOP=()
 
 # =============================================================================
 # HELPERS
@@ -47,16 +58,34 @@ setup_env() {
     mkdir -p "$LOG_DIR"
 }
 
+env_ready() {
+    [[ -n "${CODE_BACKUP_B2_ACCOUNT_ID:-}" ]] &&
+    [[ -n "${CODE_BACKUP_B2_ACCOUNT_KEY:-}" ]] &&
+    [[ -n "${CODE_BACKUP_RESTIC_PASSWORD:-}" ]]
+}
+
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+# Resolve a path to its physical form so that ~, ~/, ., and symlinked
+# spellings all compare equal. Non-existent paths canonicalize to themselves.
+canonicalize() {
+    local p="$1"
+    (cd "$p" 2>/dev/null && pwd -P) || echo "$p"
 }
 
 acquire_lock() {
     if [[ -f "$LOCK_FILE" ]]; then
         local pid
-        pid=$(cat "$LOCK_FILE")
-        if kill -0 "$pid" 2>/dev/null; then
+        pid=$(cat "$LOCK_FILE" 2>/dev/null) || pid=""
+
+        # kill -0 only proves *some* process owns the PID; after an unclean
+        # kill the PID may have been recycled by anything. Check the command
+        # line too, or a reused PID would block backups forever.
+        if [[ -n "$pid" ]] && ps -p "$pid" -o command= 2>/dev/null | grep -q "bin/backup"; then
             echo "ERROR: Backup already running (PID $pid)" >&2
+            echo "If that is wrong, remove $LOCK_FILE" >&2
             exit 1
         fi
         rm -f "$LOCK_FILE"
@@ -70,6 +99,63 @@ release_lock() {
 
 repo_exists() {
     restic -r "$REPO" snapshots --latest 1 &>/dev/null
+}
+
+# Populates SNAPSHOT_TOP with the snapshot's top-level entries, and exits if
+# the snapshot is not $HOME-relative.
+#
+# Snapshots taken before the $HOME-relative switch stored absolute paths
+# (/Users/<olduser>/Code). Restoring one into $HOME would silently produce
+# ~/Users/<olduser>/Code instead of ~/Code, so refuse and point at --target.
+assert_home_relative() {
+    local snap="$1"
+    local ls_out rc=0
+
+    # Capture status and stderr explicitly: a bare `x=$(a | b)` under
+    # `set -euo pipefail` aborts the script before any error can be printed.
+    ls_out=$(restic -r "$REPO" ls "$snap" 2>&1) || rc=$?
+    if [[ $rc -ne 0 ]]; then
+        echo "ERROR: could not list snapshot '$snap' (restic exit $rc)" >&2
+        echo "$ls_out" >&2
+        exit 1
+    fi
+
+    local top
+    top=$(grep -E '^/[^/]+$' <<< "$ls_out" | sed 's|^/||' | sort -u) || top=""
+    if [[ -z "$top" ]]; then
+        echo "ERROR: snapshot '$snap' has no top-level entries" >&2
+        exit 1
+    fi
+
+    SNAPSHOT_TOP=()
+    local entry
+    while IFS= read -r entry; do
+        [[ -n "$entry" ]] && SNAPSHOT_TOP+=("$entry")
+    done <<< "$top"
+
+    local unexpected=()
+    local d found
+    for entry in "${SNAPSHOT_TOP[@]}"; do
+        found=0
+        for d in "${BACKUP_DIRS[@]}"; do
+            [[ "$entry" == "$d" ]] && found=1 && break
+        done
+        [[ $found -eq 1 ]] || unexpected+=("$entry")
+    done
+
+    if [[ ${#unexpected[@]} -gt 0 ]]; then
+        echo "ERROR: snapshot '$snap' is not \$HOME-relative." >&2
+        echo "  Top level has: ${unexpected[*]}" >&2
+        echo "  Expected only: ${BACKUP_DIRS[*]}" >&2
+        echo "" >&2
+        echo "It predates the \$HOME-relative switch and stores another machine's" >&2
+        echo "absolute paths, so restoring it here would create ~/${unexpected[0]}/..." >&2
+        echo "" >&2
+        echo "Stage it somewhere and move the contents yourself:" >&2
+        echo "    backup restore --snap $snap --target /tmp/recover" >&2
+        echo "    ls /tmp/recover" >&2
+        exit 1
+    fi
 }
 
 # =============================================================================
@@ -94,12 +180,16 @@ cmd_backup() {
         restic -r "$REPO" init
     fi
 
+    # Hand restic relative paths from $HOME so snapshots stay portable.
+    cd "$HOME"
+
     local dirs=()
+    local d
     for d in "${BACKUP_DIRS[@]}"; do
         if [[ -d "$d" ]]; then
             dirs+=("$d")
         else
-            log "SKIP: $d does not exist"
+            log "SKIP: ~/$d does not exist"
         fi
     done
 
@@ -108,12 +198,25 @@ cmd_backup() {
         exit 1
     fi
 
-    log "Starting backup: ${dirs[*]}"
+    log "Starting backup from $HOME: ${dirs[*]}"
+
+    local rc=0
+    set +e
     restic -r "$REPO" backup \
         --exclude-file="$EXCLUDE_FILE" \
         --verbose \
         "${dirs[@]}" 2>&1 | tee -a "$LOG_FILE"
-    log "Backup complete"
+    rc=${PIPESTATUS[0]}
+    set -e
+
+    # restic exit 3 = snapshot created, but some files could not be read.
+    # Routine in an active tree (build churn, vanishing temp files); treating
+    # it as failure would cry wolf until real failures get ignored.
+    case $rc in
+        0) log "Backup complete" ;;
+        3) log "Backup complete (warning: some files were unreadable)" ;;
+        *) log "ERROR: backup failed (restic exit $rc)"; exit "$rc" ;;
+    esac
 }
 
 cmd_prune() {
@@ -157,7 +260,7 @@ cmd_status() {
 
     echo ""
     echo "=== Repo stats ==="
-    if [[ -n "${CODE_BACKUP_B2_ACCOUNT_ID:-}" ]]; then
+    if env_ready; then
         setup_env
         restic -r "$REPO" stats --mode raw-data 2>/dev/null || echo "Could not reach repo"
     else
@@ -172,24 +275,58 @@ cmd_restore() {
     local target="$HOME"
     local snapshot="latest"
     local include=""
+    local assume_yes=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --target)  target="$2"; shift 2 ;;
-            --include) include="$2"; shift 2 ;;
-            --snap)    snapshot="$2"; shift 2 ;;
+            --target|--include|--snap)
+                if [[ $# -lt 2 ]]; then
+                    echo "ERROR: $1 requires a value" >&2
+                    echo "Usage: backup restore [--target dir] [--include path] [--snap id] [--yes]" >&2
+                    exit 1
+                fi
+                case "$1" in
+                    --target)  target="$2" ;;
+                    --include) include="$2" ;;
+                    --snap)    snapshot="$2" ;;
+                esac
+                shift 2
+                ;;
+            --yes|-y)  assume_yes=1; shift ;;
             *)
                 echo "Unknown option: $1" >&2
-                echo "Usage: backup restore [--target dir] [--include path] [--snap id]" >&2
+                echo "Usage: backup restore [--target dir] [--include path] [--snap id] [--yes]" >&2
                 exit 1
                 ;;
         esac
     done
 
+    # Compare physical paths: `--target ~/` (what tab-completion produces) must
+    # hit the same guard as `--target ~`, or the guard is trivially bypassed.
+    if [[ "$(canonicalize "$target")" == "$(canonicalize "$HOME")" ]]; then
+        assert_home_relative "$snapshot"
+
+        echo "Restoring snapshot '$snapshot' into $HOME:"
+        if [[ -n "$include" ]]; then
+            echo "  ~/${include#/}"
+        else
+            # The snapshot's real contents, not BACKUP_DIRS: a snapshot may
+            # hold a subset, and this line is what consent is given against.
+            printf '  ~/%s\n' "${SNAPSHOT_TOP[@]}"
+        fi
+
+        if [[ $assume_yes -eq 0 ]]; then
+            echo "Existing files will be overwritten."
+            read -r -p "Continue? [y/N] " reply || reply=""
+            [[ "$reply" =~ ^[Yy]$ ]] || { echo "Aborted"; exit 1; }
+        fi
+    else
+        echo "Restoring snapshot '$snapshot' to $target${include:+ (include: $include)}"
+    fi
+
     local args=(restore "$snapshot" --target "$target")
     [[ -n "$include" ]] && args+=(--include "$include")
 
-    echo "Restoring snapshot '$snapshot' to $target${include:+ (include: $include)}"
     restic -r "$REPO" "${args[@]}"
     echo "Restore complete"
 }
@@ -197,6 +334,7 @@ cmd_restore() {
 cmd_unlock() {
     setup_env
     log "Removing stale locks"
+    rm -f "$LOCK_FILE"
     restic -r "$REPO" unlock
     log "Unlock complete"
 }
@@ -215,20 +353,39 @@ COMMANDS:
     check       Verify repo integrity
     snapshots   List snapshots
     ls          List files in snapshot (backup ls [snapshot] [path])
-    restore     Restore snapshot (--target dir --include path --snap id)
+    restore     Restore snapshot (--target dir --include path --snap id --yes)
     status      Show last log + repo stats
-    unlock      Remove stale locks
+    unlock      Remove stale locks (restic repo + local pid file)
     help        Show this help message
 
 EXAMPLES:
     backup                  Run incremental backup
     backup snapshots        List all snapshots
     backup ls               List files in latest snapshot
-    backup ls latest ~/Code Browse a specific path
-    backup restore          Restore everything to ~/
-    backup restore --include ~/Code/myapp --target /tmp/restore
-    backup restore --snap 14346f37 --target ~/recover
+    backup ls latest /Code  Browse a specific path
+    backup restore          Restore everything into ~ (prompts first)
+    backup restore --yes    Same, without the prompt
+    backup restore --include /Code/myapp
+    backup restore --snap 14346f37 --target /tmp/recover
     backup prune            Clean old snapshots (24h/7d/4w/6m)
+
+HOW PATHS WORK:
+    Backups run from $HOME and store relative paths (Code, LastVolt), so a
+    snapshot taken on one Mac restores onto any other Mac's home directory
+    no matter what the username is. Paths inside a snapshot are rooted at
+    the backup set, not at /:
+
+        backup ls latest        ->  /Code/myapp/file.txt
+
+    `backup restore` therefore defaults to --target $HOME, which is what you
+    almost always want. Pass --target only to stage a copy for inspection:
+
+        backup restore --target /tmp/recover
+        ->  /tmp/recover/Code, /tmp/recover/LastVolt
+
+    Snapshots older than the $HOME-relative switch stored absolute paths
+    (/Users/<olduser>/Code). Restoring those into $HOME is refused; use
+    --target to stage them and move the contents by hand.
 
 ENVIRONMENT:
     CODE_BACKUP_B2_ACCOUNT_ID      Backblaze B2 application key ID
